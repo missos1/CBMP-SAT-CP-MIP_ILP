@@ -1,5 +1,5 @@
 from pysat.formula import CNF
-from graph import Graph
+from classes.graph import Graph
 
 
 def cyclic_dist(l1: int, l2: int, n: int) -> int:
@@ -8,9 +8,7 @@ def cyclic_dist(l1: int, l2: int, n: int) -> int:
 def var_encode(label: int, vertex: int, vertex_count: int) -> int:
     return (label - 1) * vertex_count + vertex
 
-def cyclic_bandwidth_cnf(graph: Graph, min_bandwidth: int, encoding: str, 
-                         use_additional_alo: bool=False,
-                         break_symmetry: bool=False) -> CNF:
+def base_cnf(graph: Graph, encoding: str, break_symmetry: bool=False, break_reflection: bool=False) -> CNF:
     enc_amo = {
         "pairwise": pairwise_amo,
         "order": order_amo
@@ -30,31 +28,24 @@ def cyclic_bandwidth_cnf(graph: Graph, min_bandwidth: int, encoding: str,
         cnf.append(group)
         enc_amo[encoding](group, cnf)
     
-    # AMO: Each label must belongs to at most one vertex
+    # Each label must belongs exactly one vertex
     for label in labels:
         group = [var_encode(label, vertex_indices[vertex], vertex_cnt) for vertex in graph.adjacency_list.keys()]
-        # Additional ALO may help with propagation but not needed due to pigeonhole principle
-        if use_additional_alo: 
-            cnf.append(group)
+        cnf.append(group)
         enc_amo[encoding](group, cnf)
-        
     
-    for u, neighbors in graph.adjacency_list.items():
-        u_idx = vertex_indices[u]
-        for v in neighbors:
-            v_idx = vertex_indices[v]
-            if u_idx < v_idx:  # process each undirected edge once
-                for l1 in labels:
-                    for l2 in labels:
-                        if cyclic_dist(l1, l2, vertex_cnt) > min_bandwidth:
-                            cnf.append([
-                                -var_encode(l1, u_idx, vertex_cnt),
-                                -var_encode(l2, v_idx, vertex_cnt)
-                            ])
     if break_symmetry and vertex_cnt > 0:
         cnf.append(var_encode(1, 1, vertex_cnt))
+        
+        if break_reflection and vertex_cnt > 1:
+            neighbors = graph.get_neighbors(1)
+            target_v = neighbors[0] if neighbors else 2
+            
+            # Forbid target_v from having labels in the second half of the circle
+            max_allowed_label = (vertex_cnt // 2) + 1
+            for label in range(max_allowed_label + 1, vertex_cnt + 1):
+                cnf.append([-var_encode(label, target_v, vertex_cnt)])
     return cnf
-    
     
 def pairwise_amo(group: list, cnf : CNF) -> None:
     pass
