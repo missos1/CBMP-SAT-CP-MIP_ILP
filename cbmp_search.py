@@ -43,6 +43,8 @@ class DecisionResult:
     variables: int = 0
     clauses: int = 0
     message: str = ""
+    build_time: float = 0.0
+    solve_time: float = 0.0
 
 
 @dataclass
@@ -62,6 +64,8 @@ class SearchResult:
     solve_calls: int
     time: float
     decisions: list = field(default_factory=list)
+    build_time: float = 0.0
+    solve_time: float = 0.0
 
 
 def max_degree(graph: Graph) -> int:
@@ -84,18 +88,24 @@ def upper_bound(graph: Graph) -> int:
 
 
 def _solve_inprocess(clauses, solver_name: str):
+    """Solve ``clauses``; returns (status, model, message, solve_seconds).
+
+    ``solve_seconds`` times only ``solver.solve()``: clause loading, model
+    extraction and any process start-up are excluded.
+    """
     try:
         with Solver(name=solver_name, bootstrap_with=clauses) as solver:
+            solve_start = time.perf_counter()
             answer = solver.solve()
+            solve_seconds = time.perf_counter() - solve_start
             model = solver.get_model() if answer else None
-        return (SAT if answer else UNSAT), model, ""
+        return (SAT if answer else UNSAT), model, "", solve_seconds
     except Exception as exc:
-        return ERROR, None, f"{type(exc).__name__}: {exc}"
+        return ERROR, None, f"{type(exc).__name__}: {exc}", 0.0
 
 
 def _worker_solve(clauses, solver_name: str, result_queue) -> None:
-    status, model, message = _solve_inprocess(clauses, solver_name)
-    result_queue.put((status, model, message))
+    result_queue.put(_solve_inprocess(clauses, solver_name))
 
 
 def _solve_subprocess(clauses, solver_name: str, time_limit: float):
@@ -106,15 +116,18 @@ def _solve_subprocess(clauses, solver_name: str, time_limit: float):
     )
     process.start()
     try:
-        status, model, message = result_queue.get(timeout=max(time_limit, 0.0))
+        status, model, message, solve_seconds = result_queue.get(
+            timeout=max(time_limit, 0.0)
+        )
     except queue_module.Empty:
         status, model, message = TIMEOUT, None, "solver time limit reached"
+        solve_seconds = float(time_limit)
     finally:
         process.join(timeout=5.0)
         if process.is_alive():
             process.terminate()
             process.join()
-    return status, model, message
+    return status, model, message, solve_seconds
 
 
 def solve_decision(graph: Graph, bound: int, encoding: str = "pairwise",
@@ -133,13 +146,17 @@ def solve_decision(graph: Graph, bound: int, encoding: str = "pairwise",
             amo_encoding=amo_encoding, card_encoding=card_encoding,
         )
     except Exception as exc:
-        return DecisionResult(bound, ERROR, time=time.perf_counter() - start,
+        elapsed = time.perf_counter() - start
+        return DecisionResult(bound, ERROR, time=elapsed, build_time=elapsed,
                               message=f"{type(exc).__name__}: {exc}")
+    build_time = time.perf_counter() - start
 
     if time_limit is None:
-        status, model, message = _solve_inprocess(cnf.clauses, solver_name)
+        status, model, message, solve_time = _solve_inprocess(
+            cnf.clauses, solver_name
+        )
     else:
-        status, model, message = _solve_subprocess(
+        status, model, message, solve_time = _solve_subprocess(
             cnf.clauses, solver_name, time_limit
         )
 
@@ -148,6 +165,7 @@ def solve_decision(graph: Graph, bound: int, encoding: str = "pairwise",
         return DecisionResult(
             bound, status, time=elapsed,
             variables=cnf.nv, clauses=len(cnf.clauses), message=message,
+            build_time=build_time, solve_time=solve_time,
         )
 
     labels = decode_model(model, graph, encoding=encoding)
@@ -155,6 +173,7 @@ def solve_decision(graph: Graph, bound: int, encoding: str = "pairwise",
         bound, SAT, labels=labels,
         bandwidth=cyclic_bandwidth(graph, labels), time=elapsed,
         variables=cnf.nv, clauses=len(cnf.clauses),
+        build_time=build_time, solve_time=solve_time,
     )
 
 
@@ -268,6 +287,8 @@ def find_min_bandwidth(graph: Graph, encoding: str = "pairwise",
         solve_calls=solve_calls,
         time=time.perf_counter() - start,
         decisions=decisions,
+        build_time=sum(d.build_time for d in decisions),
+        solve_time=sum(d.solve_time for d in decisions),
     )
 
 
@@ -295,9 +316,12 @@ def find_min_bandwidth_incremental(graph: Graph,
     best_bandwidth = cyclic_bandwidth(graph, witness)
     theoretical_lb = lower_bound(graph)
 
+    build_start = time.perf_counter()
     cnf = build_pairwise_cnf(
         graph, best_bandwidth, break_symmetry, break_reflection, amo_encoding
     )
+    build_time = time.perf_counter() - build_start
+    solve_time = 0.0
 
     status = "OPTIMAL"
     message = ""
@@ -313,6 +337,7 @@ def find_min_bandwidth_incremental(graph: Graph,
                     message = "total time limit reached"
                     break
 
+            add_start = time.perf_counter()
             for u, v in graph.get_edges():
                 iu, iv = index[u], index[v]
                 for label_u in range(1, n + 1):
@@ -321,10 +346,13 @@ def find_min_bandwidth_incremental(graph: Graph,
                             -var_encode(label_u, iu, n),
                             -var_encode(label_v, iv, n),
                         ])
+            build_time += time.perf_counter() - add_start
 
             call_start = time.perf_counter()
             try:
                 answer = solver.solve()
+                call_time = time.perf_counter() - call_start
+                solve_time += call_time
                 call_status = SAT if answer else UNSAT
                 model = solver.get_model() if answer else None
             except Exception as exc:
@@ -335,7 +363,7 @@ def find_min_bandwidth_incremental(graph: Graph,
 
             if call_status == UNSAT:
                 decisions.append(DecisionResult(
-                    bound - 1, UNSAT, time=time.perf_counter() - call_start,
+                    bound - 1, UNSAT, time=call_time, solve_time=call_time,
                 ))
                 return SearchResult(
                     graph_name=graph.name,
@@ -353,6 +381,8 @@ def find_min_bandwidth_incremental(graph: Graph,
                     solve_calls=solve_calls,
                     time=time.perf_counter() - start,
                     decisions=decisions,
+                    build_time=build_time,
+                    solve_time=solve_time,
                 )
             if call_status == ERROR:
                 status = ERROR
@@ -363,7 +393,7 @@ def find_min_bandwidth_incremental(graph: Graph,
             actual = cyclic_bandwidth(graph, labels)
             decisions.append(DecisionResult(
                 bound - 1, SAT, labels=labels, bandwidth=actual,
-                time=time.perf_counter() - call_start,
+                time=call_time, solve_time=call_time,
             ))
             if actual < best_bandwidth:
                 best_bandwidth = actual
@@ -386,6 +416,8 @@ def find_min_bandwidth_incremental(graph: Graph,
         solve_calls=solve_calls,
         time=time.perf_counter() - start,
         decisions=decisions,
+        build_time=build_time,
+        solve_time=solve_time,
     )
 
 
@@ -403,7 +435,7 @@ def main(argv=None) -> int:
     parser.add_argument("--reflection", action="store_true")
     args = parser.parse_args(argv)
 
-    from mtx_parser import parse_file
+    from classes.mtx_parser import parse_file
 
     name, n, edges = parse_file(args.path)
     graph = Graph.from_parsed((name, n, edges))

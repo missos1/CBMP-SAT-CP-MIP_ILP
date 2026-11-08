@@ -25,17 +25,17 @@ def _cp_status(solution, time_limit: float) -> str:
     raw = str(solution.get_solve_status()).lower()
     if "optimal" in raw:
         return OPTIMAL
-    if "feasible" in raw:
-        return FEASIBLE
     if "infeasible" in raw:
         return INFEASIBLE
+    if "feasible" in raw:
+        return FEASIBLE
     if "unknown" in raw:
         elapsed = 0.0
         try:
             elapsed = float(solution.get_solve_time())
         except Exception:
             pass
-        return TIMEOUT if elapsed >= time_limit - 1e-6 else UNKNOWN
+        return TIMEOUT if elapsed >= max(0.0, time_limit - 1.0) or time_limit <= 1.0 else UNKNOWN
     return UNKNOWN
 
 
@@ -44,10 +44,10 @@ def _mip_status(solution, details) -> str:
         raw = str(solution.solve_status.name).lower()
         if "optimal" in raw:
             return OPTIMAL
-        if "feasible" in raw:
-            return FEASIBLE
         if "infeasible" in raw:
             return INFEASIBLE
+        if "feasible" in raw:
+            return FEASIBLE
         return UNKNOWN
     raw = str(details.status).lower() if details is not None else ""
     if "infeasible" in raw:
@@ -59,7 +59,8 @@ def _mip_status(solution, details) -> str:
 
 def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
                       break_reflection: bool = False,
-                      time_limit: float = 60.0) -> object:
+                      time_limit: float = 60.0,
+                      workers: int = 1) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -96,7 +97,9 @@ def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
         mdl.add(mdl.minimize(bound))
 
         build_time = time.perf_counter() - start
-        solution = mdl.solve(TimeLimit=float(time_limit), LogVerbosity="Quiet")
+        solution = mdl.solve(
+            TimeLimit=float(time_limit), Workers=int(workers), LogVerbosity="Quiet"
+        )
         solve_time = time.perf_counter() - start - build_time
         if solution is not None:
             try:
@@ -135,7 +138,8 @@ def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
 def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
                        break_reflection: bool = False,
                        time_limit: float = 60.0,
-                       mip_gap: float = 0.0) -> object:
+                       mip_gap: float = 0.0,
+                       workers: int = 1) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -157,6 +161,7 @@ def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
         mdl = Model(name="cbmp_cplex_mip")
         mdl.parameters.timelimit = float(time_limit)
         mdl.parameters.mip.tolerances.mipgap = float(mip_gap)
+        mdl.parameters.threads = int(workers)
 
         x = {(i, l): mdl.binary_var(name=f"x_{i}_{l}")
              for i in range(n) for l in range(n)}
@@ -233,3 +238,25 @@ def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
             status=ERROR, build_time=time.perf_counter() - start,
             message=f"{type(exc).__name__}: {exc}",
         )
+
+
+if __name__ == "__main__":
+    import argparse
+    from benchmark.runner import run_benchmark_suite
+
+    parser = argparse.ArgumentParser(description="Run CPLEX benchmarks for CBMP")
+    parser.add_argument(
+        "--solver",
+        choices=["cp", "mip", "both"],
+        default="both",
+        help="Which CPLEX solver to benchmark (default: both)",
+    )
+    parser.add_argument("--time-limit", type=float, default=None, help="Time limit per instance")
+    args = parser.parse_args()
+
+    if args.solver in ("cp", "both"):
+        run_benchmark_suite(benchmap_cplex_cp, solver_key="cplex_cp", time_limit=args.time_limit)
+
+    if args.solver in ("mip", "both"):
+        run_benchmark_suite(benchmap_cplex_mip, solver_key="cplex_mip", time_limit=args.time_limit)
+

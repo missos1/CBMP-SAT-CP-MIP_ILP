@@ -139,7 +139,7 @@ def test_baselines_symmetry_breaking(index):
 
 @pytest.mark.parametrize("index", range(len(BASELINES)), ids=BASELINE_IDS)
 def test_baselines_harwell_boeing(index):
-    from mtx_parser import parse_file
+    from classes.mtx_parser import parse_file
 
     cases = {
         "counterx/jgl009.mtx.gz": 4,

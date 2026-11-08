@@ -21,11 +21,12 @@ def benchmap_sat(graph: Graph, encoding: str = "pairwise",
                  incremental: bool = False,
                  amo_encoding="pairwise",
                  card_encoding="seqcounter") -> object:
+    effective_total_limit = time_limit if total_time_limit is None else total_time_limit
     if incremental:
         result = find_min_bandwidth_incremental(
             graph, solver_name=solver_name,
             time_limit_per_call=time_limit,
-            total_time_limit=total_time_limit,
+            total_time_limit=effective_total_limit,
             break_symmetry=break_symmetry,
             break_reflection=break_reflection,
             amo_encoding=amo_encoding,
@@ -35,7 +36,7 @@ def benchmap_sat(graph: Graph, encoding: str = "pairwise",
         result = find_min_bandwidth(
             graph, encoding=encoding, solver_name=solver_name,
             time_limit_per_call=time_limit,
-            total_time_limit=total_time_limit,
+            total_time_limit=effective_total_limit,
             break_symmetry=break_symmetry,
             break_reflection=break_reflection,
             amo_encoding=amo_encoding, card_encoding=card_encoding,
@@ -60,6 +61,44 @@ def benchmap_sat(graph: Graph, encoding: str = "pairwise",
         encoding=encoding_name, status=status,
         labels=result.labels, bandwidth=result.bandwidth,
         lower_bound=result.lower_bound, upper_bound=result.upper_bound,
-        solve_time=result.time,
+        build_time=result.build_time, solve_time=result.solve_time,
         extra={"solve_calls": result.solve_calls, "sat_status": result.status},
     )
+
+
+if __name__ == "__main__":
+    import argparse
+    from functools import partial
+    from benchmark.runner import run_benchmark_suite
+
+    parser = argparse.ArgumentParser(description="Run PySAT benchmarks for CBMP")
+    parser.add_argument(
+        "--mode",
+        choices=["pairwise", "incremental", "order", "all"],
+        default="all",
+        help="Which SAT configuration to benchmark (default: all)",
+    )
+    parser.add_argument("--time-limit", type=float, default=None, help="Time limit per instance")
+    args = parser.parse_args()
+
+    if args.mode in ("pairwise", "all"):
+        fn = partial(benchmap_sat, encoding="pairwise", incremental=False)
+        run_benchmark_suite(
+            fn, solver_key="sat_pairwise", encoding="pairwise", time_limit=args.time_limit
+        )
+
+    if args.mode in ("incremental", "all"):
+        fn = partial(benchmap_sat, encoding="pairwise", incremental=True)
+        run_benchmark_suite(
+            fn,
+            solver_key="sat_incremental",
+            encoding="pairwise_incremental",
+            time_limit=args.time_limit,
+        )
+
+    if args.mode in ("order", "all"):
+        fn = partial(benchmap_sat, encoding="order", incremental=False)
+        run_benchmark_suite(
+            fn, solver_key="sat_order", encoding="order", time_limit=args.time_limit
+        )
+

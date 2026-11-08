@@ -26,14 +26,14 @@ def _map_status(status: int, time_limit: float, elapsed: float) -> str:
     if status == cp_model.INFEASIBLE:
         return INFEASIBLE
     if status == cp_model.UNKNOWN:
-        return TIMEOUT if elapsed >= time_limit - 1e-6 else UNKNOWN
+        return TIMEOUT if elapsed >= max(0.0, time_limit - 1.0) or time_limit <= 1.0 else UNKNOWN
     return ERROR
 
 
 def benchmap_cpsat(graph: Graph, break_symmetry: bool = False,
                    break_reflection: bool = False,
                    time_limit: float = 60.0,
-                   workers: int = 0) -> object:
+                   workers: int = 1) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -122,3 +122,15 @@ def benchmap_cpsat(graph: Graph, break_symmetry: bool = False,
 
 
 benchmap_ortools = benchmap_cpsat
+
+
+if __name__ == "__main__":
+    import argparse
+    from benchmark.runner import run_benchmark_suite
+
+    parser = argparse.ArgumentParser(description="Run OR-Tools CP-SAT benchmark for CBMP")
+    parser.add_argument("--time-limit", type=float, default=None, help="Time limit per instance")
+    args = parser.parse_args()
+
+    run_benchmark_suite(benchmap_cpsat, solver_key="cpsat", time_limit=args.time_limit)
+

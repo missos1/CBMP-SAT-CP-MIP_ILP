@@ -31,7 +31,8 @@ def _map_status(model) -> str:
 def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
                         break_reflection: bool = False,
                         time_limit: float = 60.0,
-                        mip_gap: float = 0.0) -> object:
+                        mip_gap: float = 0.0,
+                        workers: int = 1) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -52,6 +53,7 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
     try:
         model = gp.Model("cbmp_gurobi")
         model.Params.OutputFlag = 0
+        model.Params.Threads = int(workers)
         model.Params.TimeLimit = float(time_limit)
         model.Params.MIPGap = float(mip_gap)
 
@@ -131,3 +133,15 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
             status=ERROR, build_time=time.perf_counter() - start,
             message=f"{type(exc).__name__}: {exc}",
         )
+
+
+if __name__ == "__main__":
+    import argparse
+    from benchmark.runner import run_benchmark_suite
+
+    parser = argparse.ArgumentParser(description="Run Gurobi MIP benchmark for CBMP")
+    parser.add_argument("--time-limit", type=float, default=None, help="Time limit per instance")
+    args = parser.parse_args()
+
+    run_benchmark_suite(benchmap_gurobi_mip, solver_key="gurobi_mip", time_limit=args.time_limit)
+

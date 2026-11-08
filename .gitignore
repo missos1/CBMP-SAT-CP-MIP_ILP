@@ -78,3 +78,4 @@ docs/_build/
 .DS_Store
 Thumbs.db
 download_nist.py
+scratch/
