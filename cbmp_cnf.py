@@ -146,6 +146,17 @@ def _forbidden_labels(label: int, bound: int, n: int):
         yield ((start - 1 + t) % n) + 1
 
 
+def labels_at_distance(label: int, distance: int, n: int):
+    """Yield the one or two labels at exactly ``distance`` from ``label``."""
+    if distance <= 0 or distance > n // 2:
+        return
+    forward = ((label - 1 + distance) % n) + 1
+    backward = ((label - 1 - distance) % n) + 1
+    yield forward
+    if backward != forward:
+        yield backward
+
+
 def build_pairwise_cnf(graph: Graph, bound: int, break_symmetry: bool = False,
                        break_reflection: bool = False,
                        amo_encoding="pairwise") -> CNF:

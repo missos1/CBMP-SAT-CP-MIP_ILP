@@ -18,7 +18,7 @@ NP-complete.
 - [x] Harwell-Boeing dataset (NIST collection) and graph parser
 - [x] Pairwise SAT encoding (one-hot + forbidden label pairs)
 - [x] Order SAT encoding (true integer-variable order encoding)
-- [ ] SAT bound search (optimal B)
+- [x] SAT bound search (binary search + incremental pairwise) and verification
 - [ ] Exact baselines: CPLEX CP, CPLEX MIP, Gurobi, CP-SAT
 - [ ] Benchmark runner + CSV results
 - [ ] Plots (cnsplots) and report
@@ -80,6 +80,24 @@ shape table is in `matrix_shapes.csv`.
 .venv\Scripts\python.exe mtx_parser.py dataset
 .venv\Scripts\python.exe mtx_parser.py --shapes dataset
 ```
+
+## Solving a single instance
+
+`cbmp_search.py` computes the minimum bound `B` (binary search, or incremental
+for the pairwise encoding), verifies the labeling, and reports the valid
+interval `[lower_bound, upper_bound]`:
+
+```powershell
+.venv\Scripts\python.exe cbmp_search.py dataset/counterx/jgl009.mtx.gz --encoding pairwise
+.venv\Scripts\python.exe cbmp_search.py dataset/counterx/jgl009.mtx.gz --encoding order
+.venv\Scripts\python.exe cbmp_search.py dataset/counterx/jgl009.mtx.gz --incremental
+.venv\Scripts\python.exe cbmp_search.py dataset/bcsstruc1/bcsstk01.mtx.gz --encoding pairwise `
+    --time-limit 60 --total-time-limit 600
+```
+
+With a time limit each SAT decision runs in an isolated process, so any solver
+(including crash-prone ones) can be stopped and still yields a valid
+`[lower_bound, upper_bound]` interval.
 
 ## Tests
 
