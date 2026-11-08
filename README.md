@@ -19,7 +19,7 @@ NP-complete.
 - [x] Pairwise SAT encoding (one-hot + forbidden label pairs)
 - [x] Order SAT encoding (true integer-variable order encoding)
 - [x] SAT bound search (binary search + incremental pairwise) and verification
-- [ ] Exact baselines: CPLEX CP, CPLEX MIP, Gurobi, CP-SAT
+- [x] Exact baselines: CPLEX CP, CPLEX MIP, Gurobi, CP-SAT
 - [ ] Benchmark runner + CSV results
 - [ ] Plots (cnsplots) and report
 
@@ -98,6 +98,34 @@ interval `[lower_bound, upper_bound]`:
 With a time limit each SAT decision runs in an isolated process, so any solver
 (including crash-prone ones) can be stopped and still yields a valid
 `[lower_bound, upper_bound]` interval.
+
+## Exact baselines
+
+All baselines return a `BenchmarkResult` with status, valid bounds, the best
+labeling found and a verification flag:
+
+```python
+from benchmark.benchmark_gurobi import benchmap_gurobi_mip
+from benchmark.benchmark_cplex import benchmap_cplex_mip, benchmap_cplex_cp
+from benchmark.benchmark_ortools import benchmap_cpsat
+from benchmark.benchmark_sat import benchmap_sat
+
+result = benchmap_cpsat(graph, time_limit=60.0)
+print(result.status, result.bandwidth, result.verified)
+```
+
+- `gurobi_mip`: Gurobi MIP, compact assignment formulation with integer
+  positions and wrap/arc binaries.
+- `cplex_mip`: CPLEX MIP, same compact formulation.
+- `cplex_cp`: CPLEX CP Optimizer, `all_diff` plus the cyclic distance
+  disjunction.
+- `cpsat`: OR-Tools CP-SAT, positions with `AddAllDifferent` and modulo/min
+  distance constraints.
+- `benchmap_sat`: wraps the SAT bound search (pairwise, order or incremental)
+  as a comparable result.
+
+Statuses are normalised to `OPTIMAL`, `FEASIBLE`, `TIMEOUT`, `INFEASIBLE`,
+`UNKNOWN` and `ERROR`; every returned labeling is checked independently.
 
 ## Tests
 

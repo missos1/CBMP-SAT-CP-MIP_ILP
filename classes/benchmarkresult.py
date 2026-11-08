@@ -1,5 +1,6 @@
-from dataclasses import dataclass
-from typing import Optional 
+from dataclasses import dataclass, field
+from typing import Optional
+
 
 @dataclass
 class BenchmarkResult:
@@ -15,3 +16,10 @@ class BenchmarkResult:
     total_time: Optional[float] = None
     bandwidth: Optional[int] = None
     status: Optional[str] = None
+    lower_bound: Optional[int] = None
+    upper_bound: Optional[int] = None
+    optimal: Optional[bool] = None
+    solution: Optional[dict] = None
+    verified: Optional[bool] = None
+    message: Optional[str] = None
+    extra: dict = field(default_factory=dict)
