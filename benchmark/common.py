@@ -30,19 +30,39 @@ def finalize_result(*, solver_name: str, graph: Graph,
                     status: str, encoding=None, labels=None,
                     bandwidth=None, lower_bound=None, upper_bound=None,
                     build_time: float = 0.0, solve_time: float = 0.0,
+                    total_time: float = None,
                     message: str = "", extra=None) -> BenchmarkResult:
     verified = None
     if labels is not None:
         verified, actual, error = verify_labeling(graph, labels)
         if verified:
             bandwidth = actual
-            if upper_bound is None or actual < upper_bound:
-                upper_bound = actual
+            upper_bound = actual
+            if status in (TIMEOUT, UNKNOWN):
+                status = FEASIBLE
         else:
             message = f"{message} {error}".strip()
+            labels = None
+            bandwidth = None
+            upper_bound = None
+            if status in (OPTIMAL, FEASIBLE):
+                status = ERROR
+    else:
+        bandwidth = None
+        upper_bound = None
+        if status in (OPTIMAL, FEASIBLE):
+            status = TIMEOUT
 
-    if bandwidth is not None and (upper_bound is None or bandwidth < upper_bound):
-        upper_bound = bandwidth
+    if verified and bandwidth is not None:
+        if lower_bound is not None and bandwidth <= lower_bound:
+            status = OPTIMAL
+        if status == OPTIMAL:
+            lower_bound = bandwidth
+            upper_bound = bandwidth
+
+    build_val = max(0.0, float(build_time or 0.0))
+    solve_val = max(0.0, float(solve_time or 0.0))
+    total_val = max(0.0, float(total_time)) if total_time is not None else (build_val + solve_val)
 
     return BenchmarkResult(
         solver_name=solver_name,
@@ -52,9 +72,9 @@ def finalize_result(*, solver_name: str, graph: Graph,
         symmetry_breaking=symmetry_breaking,
         reflection_breaking=reflection_breaking,
         encoding=encoding,
-        build_time=round(build_time, 6),
-        solve_time=round(solve_time, 6),
-        total_time=round(build_time + solve_time, 6),
+        build_time=round(build_val, 6),
+        solve_time=round(solve_val, 6),
+        total_time=round(total_val, 6),
         bandwidth=bandwidth,
         status=status,
         lower_bound=lower_bound,

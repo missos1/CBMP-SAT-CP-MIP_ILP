@@ -18,7 +18,7 @@ from benchmark.common import (
 from classes.graph import Graph
 
 
-def _map_status(status: int, time_limit: float, elapsed: float) -> str:
+def _map_status(status: int, time_limit: float, total_elapsed: float) -> str:
     if status == cp_model.OPTIMAL:
         return OPTIMAL
     if status == cp_model.FEASIBLE:
@@ -26,14 +26,14 @@ def _map_status(status: int, time_limit: float, elapsed: float) -> str:
     if status == cp_model.INFEASIBLE:
         return INFEASIBLE
     if status == cp_model.UNKNOWN:
-        return TIMEOUT if elapsed >= time_limit - 1e-6 else UNKNOWN
+        return TIMEOUT
     return ERROR
 
 
 def benchmap_cpsat(graph: Graph, break_symmetry: bool = False,
                    break_reflection: bool = False,
                    time_limit: float = 60.0,
-                   workers: int = 0) -> object:
+                   workers: int = 8) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -48,6 +48,7 @@ def benchmap_cpsat(graph: Graph, break_symmetry: bool = False,
         )
 
     vertices = list(graph.adjacency_list)
+    theo_lb = theoretical_lower_bound(graph)
     start = time.perf_counter()
 
     try:
@@ -72,33 +73,38 @@ def benchmap_cpsat(graph: Graph, break_symmetry: bool = False,
             model.AddMinEquality(distance, [offset, n - offset])
             distances.append(distance)
 
-        bound = model.NewIntVar(0, n // 2, "B")
+        bound = model.NewIntVar(theo_lb, n // 2, "B")
         model.AddMaxEquality(bound, distances)
         model.Minimize(bound)
 
         build_time = time.perf_counter() - start
+        remaining = max(0.0, float(time_limit) - build_time)
         solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = float(time_limit)
+        solver.parameters.max_time_in_seconds = remaining
         solver.parameters.num_search_workers = int(workers)
-        status = solver.Solve(model)
-        elapsed = float(solver.WallTime())
 
-        mapped = _map_status(status, time_limit, elapsed)
+        solve_start = time.perf_counter()
+        status = solver.Solve(model) if remaining > 0 else cp_model.UNKNOWN
+        solve_time = time.perf_counter() - solve_start
+        total_time = time.perf_counter() - start
+
+        mapped = _map_status(status, time_limit, total_time)
         labels = None
         bandwidth = None
-        if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        if remaining > 0 and status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
             labels = {
                 key: int(solver.Value(position[key])) + 1 for key in vertices
             }
             bandwidth = int(round(solver.ObjectiveValue()))
 
-        lower = theoretical_lower_bound(graph)
-        try:
-            best_bound = float(solver.BestObjectiveBound())
-            if math.isfinite(best_bound) and abs(best_bound) < 1e20:
-                lower = max(lower, int(math.ceil(best_bound - 1e-6)))
-        except Exception:
-            pass
+        lower = theo_lb
+        if remaining > 0:
+            try:
+                best_bound = float(solver.BestObjectiveBound())
+                if math.isfinite(best_bound) and abs(best_bound) < 1e20:
+                    lower = max(lower, int(math.ceil(best_bound - 1e-6)))
+            except Exception:
+                pass
         if lower > n // 2:
             lower = n // 2
 
@@ -107,18 +113,32 @@ def benchmap_cpsat(graph: Graph, break_symmetry: bool = False,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
             status=mapped, labels=labels, bandwidth=bandwidth,
-            lower_bound=lower, build_time=build_time, solve_time=elapsed,
+            lower_bound=lower, build_time=build_time, solve_time=solve_time,
+            total_time=total_time,
             extra={"cpsat_status": int(status)},
         )
 
     except Exception as exc:
+        elapsed = time.perf_counter() - start
         return finalize_result(
             solver_name="cpsat", graph=graph,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
-            status=ERROR, build_time=time.perf_counter() - start,
+            status=ERROR, build_time=elapsed, total_time=elapsed,
             message=f"{type(exc).__name__}: {exc}",
         )
 
 
 benchmap_ortools = benchmap_cpsat
+
+
+if __name__ == "__main__":
+    import argparse
+    from benchmark.runner import run_benchmark_suite
+
+    parser = argparse.ArgumentParser(description="Run OR-Tools CP-SAT benchmark for CBMP")
+    parser.add_argument("--time-limit", type=float, default=None, help="Time limit per instance")
+    args = parser.parse_args()
+
+    run_benchmark_suite(benchmap_cpsat, solver_key="cpsat", time_limit=args.time_limit)
+

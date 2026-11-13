@@ -19,47 +19,49 @@ from benchmark.common import (
 from classes.graph import Graph
 
 
-def _cp_status(solution, time_limit: float) -> str:
+def _cp_status(solution, time_limit: float, total_elapsed: float = 0.0) -> str:
     if solution is None:
-        return UNKNOWN
+        return TIMEOUT if total_elapsed >= max(0.0, time_limit - 1.0) or time_limit <= 1.0 else UNKNOWN
     raw = str(solution.get_solve_status()).lower()
     if "optimal" in raw:
         return OPTIMAL
-    if "feasible" in raw:
-        return FEASIBLE
     if "infeasible" in raw:
         return INFEASIBLE
-    if "unknown" in raw:
-        elapsed = 0.0
-        try:
-            elapsed = float(solution.get_solve_time())
-        except Exception:
-            pass
-        return TIMEOUT if elapsed >= time_limit - 1e-6 else UNKNOWN
+    if "feasible" in raw:
+        return FEASIBLE
+    stop_cause = ""
+    try:
+        stop_cause = str(solution.get_stop_cause()).lower()
+    except Exception:
+        pass
+    if "limit" in stop_cause or "unknown" in raw:
+        if "limit" in stop_cause or total_elapsed >= max(0.0, time_limit - 1.0) or time_limit <= 1.0:
+            return TIMEOUT
     return UNKNOWN
 
 
-def _mip_status(solution, details) -> str:
+def _mip_status(solution, details, time_limit: float = 0.0, total_elapsed: float = 0.0) -> str:
     if solution is not None:
         raw = str(solution.solve_status.name).lower()
         if "optimal" in raw:
             return OPTIMAL
-        if "feasible" in raw:
-            return FEASIBLE
         if "infeasible" in raw:
             return INFEASIBLE
-        return UNKNOWN
+        if "feasible" in raw:
+            return FEASIBLE
+        return FEASIBLE
     raw = str(details.status).lower() if details is not None else ""
     if "infeasible" in raw:
         return INFEASIBLE
-    if "time" in raw or "limit" in raw:
+    if "time" in raw or "limit" in raw or total_elapsed >= max(0.0, time_limit - 1.0):
         return TIMEOUT
     return UNKNOWN
 
 
 def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
                       break_reflection: bool = False,
-                      time_limit: float = 60.0) -> object:
+                      time_limit: float = 60.0,
+                      workers: int = 8) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -74,6 +76,7 @@ def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
         )
 
     vertices = list(graph.adjacency_list)
+    theo_lb = theoretical_lower_bound(graph)
     start = time.perf_counter()
 
     try:
@@ -89,22 +92,47 @@ def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
                 target = neighbours[0] if neighbours else vertices[1]
                 mdl.add(x[target] <= n // 2 + 1)
 
-        bound = mdl.integer_var(0, n // 2, name="B")
+        bound = mdl.integer_var(theo_lb, n // 2, name="B")
         for u, v in edges:
             diff = mdl.abs(x[u] - x[v])
-            mdl.add(mdl.min(diff, n - diff) <= bound)
+            mdl.add((diff <= bound) | (diff >= n - bound))
         mdl.add(mdl.minimize(bound))
 
         build_time = time.perf_counter() - start
-        solution = mdl.solve(TimeLimit=float(time_limit), LogVerbosity="Quiet")
-        solve_time = time.perf_counter() - start - build_time
-        if solution is not None:
-            try:
-                solve_time = float(solution.get_solve_time())
-            except Exception:
-                pass
+        remaining = max(0.0, float(time_limit) - build_time)
+        solve_kwargs = {
+            "TimeLimit": remaining,
+            # "FailureDirectedSearch": "Off",
+            "LogVerbosity": "Quiet",
+        }
+        if workers is not None and int(workers) > 0:
+            solve_kwargs["Workers"] = int(workers)
 
-        status = _cp_status(solution, time_limit)
+        solve_start = time.perf_counter()
+        fallback_note = ""
+        solution = None
+        if remaining > 0:
+            try:
+                solution = mdl.solve(**solve_kwargs)
+            except Exception as solve_exc:
+                # Resilient fallback if cpoptimizer segfaults (rc=-11 / 0xC0000005)
+                elapsed_so_far = time.perf_counter() - start
+                rem_fallback = max(1.0, float(time_limit) - elapsed_so_far)
+                fallback_workers = 1 if (workers is not None and int(workers) <= 1) else min(8, int(workers) if workers else 8)
+                fallback_kwargs = {
+                    "TimeLimit": rem_fallback,
+                    "FailureDirectedSearch": "Off",
+                    "SearchType": "Restart",
+                    "Workers": fallback_workers,
+                    "LogVerbosity": "Quiet",
+                }
+                solution = mdl.solve(**fallback_kwargs)
+                fallback_note = f"recovered from {type(solve_exc).__name__} (fallback workers={fallback_workers})"
+
+        solve_time = time.perf_counter() - solve_start
+        total_time = time.perf_counter() - start
+
+        status = _cp_status(solution, time_limit, total_time) if remaining > 0 else TIMEOUT
         labels = None
         if solution is not None and solution.is_solution():
             labels = {
@@ -112,22 +140,35 @@ def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
                 for key in vertices
             }
 
+        lower = theo_lb
+        if solution is not None:
+            try:
+                obj_bounds = solution.get_objective_bounds()
+                if obj_bounds and obj_bounds[0] is not None and math.isfinite(float(obj_bounds[0])):
+                    lower = max(lower, int(math.ceil(float(obj_bounds[0]) - 1e-6)))
+            except Exception:
+                pass
+        if lower > n // 2:
+            lower = n // 2
+
+        msg = fallback_note if fallback_note else ("" if solution is not None else "no solution returned")
         return finalize_result(
             solver_name="cplex_cp", graph=graph,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
             status=status, labels=labels,
-            lower_bound=theoretical_lower_bound(graph),
-            build_time=build_time, solve_time=solve_time,
-            message="" if solution is not None else "no solution returned",
+            lower_bound=lower,
+            build_time=build_time, solve_time=solve_time, total_time=total_time,
+            message=msg,
         )
 
     except Exception as exc:
+        elapsed = time.perf_counter() - start
         return finalize_result(
             solver_name="cplex_cp", graph=graph,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
-            status=ERROR, build_time=time.perf_counter() - start,
+            status=ERROR, build_time=elapsed, total_time=elapsed,
             message=f"{type(exc).__name__}: {exc}",
         )
 
@@ -135,7 +176,8 @@ def benchmap_cplex_cp(graph: Graph, break_symmetry: bool = False,
 def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
                        break_reflection: bool = False,
                        time_limit: float = 60.0,
-                       mip_gap: float = 0.0) -> object:
+                       mip_gap: float = 0.0,
+                       workers: int = 8) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -151,12 +193,14 @@ def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
 
     vertices = list(graph.adjacency_list)
     index = {v: i for i, v in enumerate(vertices)}
+    theo_lb = theoretical_lower_bound(graph)
     start = time.perf_counter()
+    mdl = None
 
     try:
         mdl = Model(name="cbmp_cplex_mip")
-        mdl.parameters.timelimit = float(time_limit)
         mdl.parameters.mip.tolerances.mipgap = float(mip_gap)
+        mdl.parameters.threads = int(workers)
 
         x = {(i, l): mdl.binary_var(name=f"x_{i}_{l}")
              for i in range(n) for l in range(n)}
@@ -174,7 +218,7 @@ def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
                     mdl.sum(x[target, l] for l in range(n // 2 + 1, n)) == 0
                 )
 
-        bound = mdl.integer_var(lb=0, ub=n // 2, name="B")
+        bound = mdl.integer_var(lb=theo_lb, ub=n // 2, name="B")
         position = mdl.integer_var_list(n, 0, n - 1, name="p")
         for i in range(n):
             mdl.add_constraint(
@@ -192,23 +236,27 @@ def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
 
         mdl.minimize(bound)
         build_time = time.perf_counter() - start
-        solution = mdl.solve(log_output=False)
-        details = mdl.solve_details
-        solve_time = float(details.time) if details is not None else (
-            time.perf_counter() - start - build_time
-        )
+        remaining = max(0.0, float(time_limit) - build_time)
+        mdl.parameters.timelimit = remaining
 
-        status = _mip_status(solution, details)
+        solve_start = time.perf_counter()
+        solution = mdl.solve(log_output=False) if remaining > 0 else None
+        solve_time = time.perf_counter() - solve_start
+        total_time = time.perf_counter() - start
+        details = mdl.solve_details if remaining > 0 else None
+
+        status = _mip_status(solution, details, time_limit, total_time) if remaining > 0 else TIMEOUT
         labels = None
         bandwidth = None
         if solution is not None:
-            labels = {
-                key: int(round(solution.get_value(position[index[key]]))) + 1
-                for key in vertices
-            }
+            labels = {}
+            for i, key in enumerate(vertices):
+                best_l = max(range(n), key=lambda l: solution.get_value(x[i, l]))
+                if solution.get_value(x[i, best_l]) > 0.5:
+                    labels[key] = best_l + 1
             bandwidth = int(round(solution.get_objective_value()))
 
-        lower = theoretical_lower_bound(graph)
+        lower = theo_lb
         if details is not None and details.best_bound is not None:
             best_bound = float(details.best_bound)
             if math.isfinite(best_bound) and abs(best_bound) < 1e20:
@@ -222,14 +270,44 @@ def benchmap_cplex_mip(graph: Graph, break_symmetry: bool = False,
             reflection_breaking=break_reflection,
             status=status, labels=labels, bandwidth=bandwidth,
             lower_bound=lower, build_time=build_time, solve_time=solve_time,
+            total_time=total_time,
             message="" if solution is not None else "no solution returned",
         )
 
     except Exception as exc:
+        elapsed = time.perf_counter() - start
         return finalize_result(
             solver_name="cplex_mip", graph=graph,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
-            status=ERROR, build_time=time.perf_counter() - start,
+            status=ERROR, build_time=elapsed, total_time=elapsed,
             message=f"{type(exc).__name__}: {exc}",
         )
+    finally:
+        if mdl is not None:
+            try:
+                mdl.end()
+            except Exception:
+                pass
+
+
+if __name__ == "__main__":
+    import argparse
+    from benchmark.runner import run_benchmark_suite
+
+    parser = argparse.ArgumentParser(description="Run CPLEX benchmarks for CBMP")
+    parser.add_argument(
+        "--solver",
+        choices=["cp", "mip", "both"],
+        default="both",
+        help="Which CPLEX solver to benchmark (default: both)",
+    )
+    parser.add_argument("--time-limit", type=float, default=None, help="Time limit per instance")
+    args = parser.parse_args()
+
+    if args.solver in ("cp", "both"):
+        run_benchmark_suite(benchmap_cplex_cp, solver_key="cplex_cp", time_limit=args.time_limit)
+
+    if args.solver in ("mip", "both"):
+        run_benchmark_suite(benchmap_cplex_mip, solver_key="cplex_mip", time_limit=args.time_limit)
+
