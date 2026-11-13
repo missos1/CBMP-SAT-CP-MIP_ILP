@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from cbmp_search import (
+from benchmark.cbmp_search import (
     SAT,
     UNSAT,
     find_min_bandwidth,
@@ -115,7 +115,7 @@ def test_harwell_boeing_known_optima(encoding):
         "counterx/rgg010.mtx.gz": 5,
         "counterx/jgl011.mtx.gz": 5,
     }
-    from classes.mtx_parser import parse_file
+    from benchmark.mtx_parser import parse_file
 
     for relative, expected in cases.items():
         name, n, edges = parse_file(ROOT / "dataset" / relative)

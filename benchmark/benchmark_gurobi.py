@@ -32,7 +32,7 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
                         break_reflection: bool = False,
                         time_limit: float = 60.0,
                         mip_gap: float = 0.0,
-                        workers: int = 1) -> object:
+                        workers: int = 8) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -48,13 +48,14 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
 
     vertices = list(graph.adjacency_list)
     index = {v: i for i, v in enumerate(vertices)}
+    theo_lb = theoretical_lower_bound(graph)
     start = time.perf_counter()
+    model = None
 
     try:
         model = gp.Model("cbmp_gurobi")
         model.Params.OutputFlag = 0
         model.Params.Threads = int(workers)
-        model.Params.TimeLimit = float(time_limit)
         model.Params.MIPGap = float(mip_gap)
 
         x = model.addVars(n, n, vtype=GRB.BINARY, name="x")
@@ -72,7 +73,7 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
                     gp.quicksum(x[target, l] for l in range(n // 2 + 1, n)) == 0
                 )
 
-        bound = model.addVar(lb=0, ub=n // 2, vtype=GRB.INTEGER, name="B")
+        bound = model.addVar(lb=theo_lb, ub=n // 2, vtype=GRB.INTEGER, name="B")
         position = model.addVars(n, lb=0, ub=n - 1, vtype=GRB.INTEGER, name="p")
         for i in range(n):
             model.addConstr(
@@ -91,21 +92,26 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
 
         model.setObjective(bound, GRB.MINIMIZE)
         build_time = time.perf_counter() - start
-        model.optimize()
-        solve_time = float(model.Runtime)
+        remaining = max(0.0, float(time_limit) - build_time)
+        model.Params.TimeLimit = remaining
 
-        status = _map_status(model)
+        solve_start = time.perf_counter()
+        if remaining > 0:
+            model.optimize()
+        solve_time = time.perf_counter() - solve_start
+        total_time = time.perf_counter() - start
+
+        status = _map_status(model) if remaining > 0 else TIMEOUT
         labels = None
-        if model.SolCount > 0:
+        if remaining > 0 and model.SolCount > 0:
             labels = {}
             for i, key in enumerate(vertices):
-                for l in range(n):
-                    if x[i, l].X > 0.5:
-                        labels[key] = l + 1
-                        break
+                best_l = max(range(n), key=lambda l: x[i, l].X)
+                if x[i, best_l].X > 0.5:
+                    labels[key] = best_l + 1
 
-        lower = theoretical_lower_bound(graph)
-        if math.isfinite(model.ObjBound) and abs(model.ObjBound) < 1e20:
+        lower = theo_lb
+        if remaining > 0 and math.isfinite(model.ObjBound) and abs(model.ObjBound) < 1e20:
             lower = max(lower, int(math.ceil(model.ObjBound - 1e-6)))
         if lower > n // 2:
             lower = n // 2
@@ -116,23 +122,30 @@ def benchmap_gurobi_mip(graph: Graph, break_symmetry: bool = False,
             reflection_breaking=break_reflection,
             status=status, labels=labels,
             lower_bound=lower,
-            upper_bound=int(round(model.ObjVal)) if model.SolCount > 0 else None,
-            build_time=build_time, solve_time=solve_time,
+            upper_bound=int(round(model.ObjVal)) if (remaining > 0 and model.SolCount > 0) else None,
+            build_time=build_time, solve_time=solve_time, total_time=total_time,
             extra={
-                "sol_count": int(model.SolCount),
-                "gurobi_status": int(model.Status),
-                "objective_bound": float(model.ObjBound),
+                "sol_count": int(model.SolCount) if remaining > 0 else 0,
+                "gurobi_status": int(model.Status) if remaining > 0 else int(GRB.TIME_LIMIT),
+                "objective_bound": float(model.ObjBound) if remaining > 0 else float(theo_lb),
             },
         )
 
     except Exception as exc:
+        elapsed = time.perf_counter() - start
         return finalize_result(
             solver_name="gurobi_mip", graph=graph,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
-            status=ERROR, build_time=time.perf_counter() - start,
+            status=ERROR, build_time=elapsed, total_time=elapsed,
             message=f"{type(exc).__name__}: {exc}",
         )
+    finally:
+        if model is not None:
+            try:
+                model.dispose()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

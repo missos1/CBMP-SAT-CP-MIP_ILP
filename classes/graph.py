@@ -84,7 +84,7 @@ def load_graphs(root: str = "dataset", skipped: list = None,
       * graph_density(n, |E|) >= max_density (near-cliques, trivial cyclic bandwidth)
     Pass None to disable any limit. The rest are sorted by edge count.
     """
-    from classes.mtx_parser import parse_all
+    from benchmark.mtx_parser import parse_all
 
     def drop(name, reason):
         if skipped is not None:

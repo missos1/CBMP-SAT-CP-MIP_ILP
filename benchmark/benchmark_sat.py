@@ -8,7 +8,7 @@ from benchmark.common import (
     UNKNOWN,
     finalize_result,
 )
-from cbmp_search import find_min_bandwidth, find_min_bandwidth_incremental
+from benchmark.cbmp_search import find_min_bandwidth, find_min_bandwidth_incremental
 from classes.graph import Graph
 
 
@@ -62,6 +62,7 @@ def benchmap_sat(graph: Graph, encoding: str = "pairwise",
         labels=result.labels, bandwidth=result.bandwidth,
         lower_bound=result.lower_bound, upper_bound=result.upper_bound,
         build_time=result.build_time, solve_time=result.solve_time,
+        total_time=result.time,
         extra={"solve_calls": result.solve_calls, "sat_status": result.status},
     )
 

@@ -5,7 +5,7 @@ from pysat.card import CardEnc, EncType
 from pysat.formula import CNF
 from pysat.solvers import Solver
 
-from cbmp_cnf import build_cnf, cyclic_dist, decode_model, pairwise_amo
+from benchmark.cbmp_cnf import build_cnf, cyclic_dist, decode_model, pairwise_amo
 from classes.graph import Graph
 
 

@@ -133,18 +133,21 @@ def run_benchmark_suite(
             start_time = time.perf_counter()
 
             def ticker():
+                is_tty = sys.stdout.isatty()
+                interval = 0.3 if is_tty else 1.0
                 while not done_event.is_set():
                     elapsed = time.perf_counter() - start_time
                     v_count = graph.get_vertex_count()
                     e_count = graph.get_edge_count()
-                    line = (
-                        f"\r[{current_run}/{total_runs}] {graph.name} "
-                        f"(V={v_count}, E={e_count}) | sym={sym}, refl={refl} | "
-                        f"Running... {elapsed:5.1f}s / {time_limit:.0f}s"
-                    )
-                    sys.stdout.write(line.ljust(80))
-                    sys.stdout.flush()
-                    done_event.wait(0.3)
+                    if is_tty:
+                        line = (
+                            f"\r[{current_run}/{total_runs}] {graph.name} "
+                            f"(V={v_count}, E={e_count}) | sym={sym}, refl={refl} | "
+                            f"Running... {elapsed:5.1f}s / {time_limit:.0f}s"
+                        )
+                        sys.stdout.write(line.ljust(80))
+                        sys.stdout.flush()
+                    done_event.wait(interval)
 
             ticker_thread = threading.Thread(target=ticker, daemon=True)
             ticker_thread.start()

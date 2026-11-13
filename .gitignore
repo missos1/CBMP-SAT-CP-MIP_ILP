@@ -79,3 +79,4 @@ docs/_build/
 Thumbs.db
 download_nist.py
 scratch/
+*.log

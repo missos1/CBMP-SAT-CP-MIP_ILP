@@ -41,7 +41,7 @@ def benchmap_highs(graph: Graph, break_symmetry: bool = False,
                    break_reflection: bool = False,
                    time_limit: float = 60.0,
                    mip_gap: float = 0.0,
-                   workers: int = 1) -> object:
+                   workers: int = 8) -> object:
     n = graph.get_vertex_count()
     edges = graph.get_edges()
 
@@ -57,13 +57,14 @@ def benchmap_highs(graph: Graph, break_symmetry: bool = False,
 
     vertices = list(graph.adjacency_list)
     index = {v: i for i, v in enumerate(vertices)}
+    theo_lb = theoretical_lower_bound(graph)
     start = time.perf_counter()
 
     try:
         h = highspy.Highs()
         h.setOptionValue("output_flag", False)
+        h.setOptionValue("parallel", "on")
         h.setOptionValue("threads", int(workers))
-        h.setOptionValue("time_limit", float(time_limit))
         h.setOptionValue("mip_rel_gap", float(mip_gap))
         h.setOptionValue("mip_abs_gap", 0.0)
 
@@ -80,7 +81,7 @@ def benchmap_highs(graph: Graph, break_symmetry: bool = False,
                 target = index[neighbours[0]] if neighbours else 1
                 h.addConstr(_qsum(x[target][l] for l in range(n // 2 + 1, n)) == 0)
 
-        bound = h.addIntegral(0, n // 2, name="B")
+        bound = h.addIntegral(theo_lb, n // 2, name="B")
         position = [h.addIntegral(0, n - 1, name=f"p_{i}") for i in range(n)]
         for i in range(n):
             h.addConstr(position[i] - _qsum(l * x[i][l] for l in range(n)) == 0)
@@ -95,14 +96,18 @@ def benchmap_highs(graph: Graph, break_symmetry: bool = False,
             h.addConstr(n - offset - bound - n * side <= 0)
 
         build_time = time.perf_counter() - start
+        remaining = max(0.0, float(time_limit) - build_time)
+        h.setOptionValue("time_limit", remaining)
 
-        clock_before = h.getRunTime()
-        h.minimize(bound)
-        solve_time = float(h.getRunTime() - clock_before)
+        solve_start = time.perf_counter()
+        if remaining > 0:
+            h.minimize(bound)
+        solve_time = time.perf_counter() - solve_start
+        total_time = time.perf_counter() - start
 
         info = h.getInfo()
-        has_solution = info.primal_solution_status == FEASIBLE_SOLUTION
-        status = _map_status(h.getModelStatus(), has_solution)
+        has_solution = (remaining > 0 and info.primal_solution_status == FEASIBLE_SOLUTION)
+        status = _map_status(h.getModelStatus(), has_solution) if remaining > 0 else TIMEOUT
 
         labels = None
         upper = None
@@ -110,14 +115,13 @@ def benchmap_highs(graph: Graph, break_symmetry: bool = False,
             values = h.getSolution().col_value
             labels = {}
             for i, key in enumerate(vertices):
-                for l in range(n):
-                    if values[x[i][l].index] > 0.5:
-                        labels[key] = l + 1
-                        break
+                best_l = max(range(n), key=lambda l: values[x[i][l].index])
+                if values[x[i][best_l].index] > 0.5:
+                    labels[key] = best_l + 1
             upper = int(round(info.objective_function_value))
 
-        lower = theoretical_lower_bound(graph)
-        dual = info.mip_dual_bound
+        lower = theo_lb
+        dual = info.mip_dual_bound if remaining > 0 else float("nan")
         if math.isfinite(dual) and abs(dual) < 1e20:
             lower = max(lower, int(math.ceil(dual - 1e-6)))
         if lower > n // 2:
@@ -129,20 +133,21 @@ def benchmap_highs(graph: Graph, break_symmetry: bool = False,
             reflection_breaking=break_reflection,
             status=status, labels=labels,
             lower_bound=lower, upper_bound=upper,
-            build_time=build_time, solve_time=solve_time,
+            build_time=build_time, solve_time=solve_time, total_time=total_time,
             extra={
-                "highs_status": h.modelStatusToString(h.getModelStatus()),
-                "mip_gap": float(info.mip_gap),
-                "mip_node_count": int(info.mip_node_count),
+                "highs_status": h.modelStatusToString(h.getModelStatus()) if remaining > 0 else "Time limit reached",
+                "mip_gap": float(info.mip_gap) if remaining > 0 else float("inf"),
+                "mip_node_count": int(info.mip_node_count) if remaining > 0 else 0,
             },
         )
 
     except Exception as exc:
+        elapsed = time.perf_counter() - start
         return finalize_result(
             solver_name="highs_mip", graph=graph,
             symmetry_breaking=break_symmetry,
             reflection_breaking=break_reflection,
-            status=ERROR, build_time=time.perf_counter() - start,
+            status=ERROR, build_time=elapsed, total_time=elapsed,
             message=f"{type(exc).__name__}: {exc}",
         )
 
