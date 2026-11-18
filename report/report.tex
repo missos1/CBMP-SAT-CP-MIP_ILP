@@ -1,512 +1,380 @@
-%% 
-%% Copyright 2019-2020 Elsevier Ltd
-%% 
-%% This file is part of the 'CAS Bundle'.
-%% --------------------------------------
-%% 
-%% It may be distributed under the conditions of the LaTeX Project Public
-%% License, either version 1.2 of this license or (at your option) any
-%% later version.  The latest version of this license is in
-%%    http://www.latex-project.org/lppl.txt
-%% and version 1.2 or later is part of all distributions of LaTeX
-%% version 1999/12/01 or later.
-%% 
-%% The list of all files belonging to the 'CAS Bundle' is
-%% given in the file `manifest.txt'.
-%% 
-%% Template article for cas-sc documentclass for 
-%% double column output.
-
-%\documentclass[a4paper,fleqn,longmktitle]{cas-sc}
 \documentclass[a4paper,fleqn]{cas-sc}
 
-% \usepackage[numbers]{natbib}
-%\usepackage[authoryear]{natbib}
-\usepackage[authoryear,longnamesfirst]{natbib}
-
-%%%Author definitions
-\def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
-\tsc{WGM}
-\tsc{QE}
-\tsc{EP}
-\tsc{PMS}
-\tsc{BEC}
-\tsc{DE}
-%%%
-
-% Uncomment and use as if needed
-%\newtheorem{theorem}{Theorem}
-%\newtheorem{lemma}[theorem]{Lemma}
-%\newdefinition{rmk}{Remark}
-%\newproof{pf}{Proof}
-%\newproof{pot}{Proof of Theorem \ref{thm}}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+\usepackage{microtype}
 
 \begin{document}
 \let\WriteBookmarks\relax
 \def\floatpagepagefraction{1}
 \def\textpagefraction{.001}
 
-% Short title
-\shorttitle{Leveraging social media news}
+% Short title and authors
+\shorttitle{Exact SAT Solving and Baseline Comparisons for CBMP}
+\shortauthors{T. D. Duc, H. M. Duc, and L. T. Hieu}
 
-% Short author
-\shortauthors{CV Radhakrishnan et~al.}
+% Main title
+\title[mode = title]{Exact SAT Solving and Comprehensive Baseline Comparisons for the Cyclic Bandwidth Minimization Problem}
 
-% Main title of the paper
-\title [mode = title]{This is a specimen $a_b$ title}                      
-% Title footnote mark
-% eg: \tnotemark[1]
-\tnotemark[1,2]
+% Authors
+\author[1]{Truong Dinh Duc}[orcid=0009-0002-1458-7210]
+\ead{24020101@vnu.edu.vn}
 
-% Title footnote 1.
-% eg: \tnotetext[1]{Title footnote text}
-% \tnotetext[<tnote number>]{<tnote text>} 
-\tnotetext[1]{This document is the results of the research
-   project funded by the National Science Foundation.}
+\author[1]{Hoang Minh Duc}[orcid=0009-0003-2941-8345]
+\ead{24020102@vnu.edu.vn}
 
-\tnotetext[2]{The second title footnote which is a longer text matter
-   to fill through the whole text width and overflow into
-   another line in the footnotes area of the first page.}
-
-
-% First author
-%
-% Options: Use if required
-% eg: \author[1,3]{Author Name}[type=editor,
-%       style=chinese,
-%       auid=000,
-%       bioid=1,
-%       prefix=Sir,
-%       orcid=0000-0000-0000-0000,
-%       facebook=<facebook id>,
-%       twitter=<twitter id>,
-%       linkedin=<linkedin id>,
-%       gplus=<gplus id>]
-\author[1,3]{CV Radhakrishnan}[type=editor,
-                        auid=000,bioid=1,
-                        prefix=Sir,
-                        role=Researcher,
-                        orcid=0000-0001-7511-2910]
-
-% Corresponding author indication
+\author[1]{Le Trung Hieu}[orcid=0009-0004-7123-9582]
 \cormark[1]
+\ead{24020103@vnu.edu.vn}
 
-% Footnote of the first author
-\fnmark[1]
+\address[1]{Faculty of Information Technology, VNU University of Engineering and Technology, 144 Xuan Thuy, Cau Giay Ward, Hanoi, 100000, Vietnam}
 
-% Email id of the first author
-\ead{cvr_1@tug.org.in}
+\cortext[1]{Corresponding author}
 
-% URL of the first author
-\ead[url]{www.cvr.cc, cvr@sayahna.org}
-
-%  Credit authorship
-\credit{Conceptualization of this study, Methodology, Software}
-
-% Address/affiliation
-\affiliation[1]{organization={Elsevier B.V.},
-    addressline={Radarweg 29}, 
-    city={Amsterdam},
-    % citysep={}, % Uncomment if no comma needed between city and postcode
-    postcode={1043 NX}, 
-    % state={},
-    country={The Netherlands}}
-
-% Second author
-\author[2,4]{Han Theh Thanh}[style=chinese]
-
-% Third author
-\author[2,3]{CV Rajagopal}[%
-   role=Co-ordinator,
-   suffix=Jr,
-   ]
-\fnmark[2]
-\ead{cvr3@sayahna.org}
-\ead[URL]{www.sayahna.org}
-
-\credit{Data curation, Writing - Original draft preparation}
-
-% Address/affiliation
-\affiliation[2]{organization={Sayahna Foundation},
-    % addressline={}, 
-    city={Jagathy},
-    % citysep={}, % Uncomment if no comma needed between city and postcode
-    postcode={695014}, 
-    state={Trivandrum},
-    country={India}}
-
-% Fourth author
-\author%
-[1,3]
-{Rishi T.}
-\cormark[2]
-\fnmark[1,3]
-\ead{rishi@stmdocs.in}
-\ead[URL]{www.stmdocs.in}
-
-\affiliation[3]{organization={STM Document Engineering Pvt Ltd.},
-    addressline={Mepukada}, 
-    city={Malayinkil},
-    % citysep={}, % Uncomment if no comma needed between city and postcode
-    postcode={695571}, 
-    state={Trivandrum},
-    country={India}}
-
-% Corresponding author text
-\cortext[cor1]{Corresponding author}
-\cortext[cor2]{Principal corresponding author}
-
-% Footnote text
-\fntext[fn1]{This is the first author footnote. but is common to third
-  author as well.}
-\fntext[fn2]{Another author footnote, this is a very long footnote and
-  it should be a really long footnote. But this footnote is not yet
-  sufficiently long enough to make two lines of footnote text.}
-
-% For a title note without a number/mark
-\nonumnote{This note has no numbers. In this work we demonstrate $a_b$
-  the formation Y\_1 of a new type of polariton on the interface
-  between a cuprous oxide slab and a polystyrene micro-sphere placed
-  on the slab.
-  }
-
-% Here goes the abstract
 \begin{abstract}
-This template helps you to create a properly formatted \LaTeX\ manuscript.
-
-\noindent\texttt{\textbackslash begin{abstract}} \dots 
-\texttt{\textbackslash end{abstract}} and
-\verb+\begin{keyword}+ \verb+...+ \verb+\end{keyword}+ 
-which
-contain the abstract and keywords respectively. 
-
-\noindent Each keyword shall be separated by a \verb+\sep+ command.
+The Cyclic Bandwidth Minimization Problem (CBMP) seeks a bijective labeling of the vertices of a graph with the positions of a cycle that minimizes the largest cyclic distance between the labels of adjacent vertices. Heuristic methods provide strong upper bounds for CBMP but do not certify optimality. We study exact SAT-based solving for CBMP and compare it with constraint programming (CP) and mixed integer linear programming (MIP) solvers. We formulate two SAT encodings of the decision problem $CB(G,\phi)\le B$: a pairwise encoding based on one-hot label variables and forbidden label pairs, and an order encoding based on threshold literals $[\phi(v)\ge k]$, cardinality constraints, and selector-guarded distance regions. Both encodings are solved by repeated SAT calls with binary search, and the pairwise encoding is additionally solved by an incremental descending search that keeps one solver instance alive. Rotation and reflection symmetries of the host cycle are removed by unit clauses. The baselines are IBM ILOG CPLEX CP Optimizer, Google OR-Tools CP-SAT, Gurobi, CPLEX MIP, and HiGHS. On 59 Harwell--Boeing instances with 24 to 245 vertices and a 300~s limit per instance, the order encoding certifies optimality for 23 instances, compared with 20 for CP-SAT, 16 for the pairwise encoding, 15 for incremental pairwise SAT, 12 for CPLEX CP, 7 for Gurobi and CPLEX MIP, and 1 for HiGHS. CPLEX CP, however, returns the best upper bound on 57 of the 59 instances. Symmetry breaking increases the number of certified instances for every SAT and CP-SAT configuration, by up to 60\% for the pairwise encoding.
 \end{abstract}
 
-% Use if graphical abstract is present
-% \begin{graphicalabstract}
-% \includegraphics{figs/grabs.pdf}
-% \end{graphicalabstract}
-
-% Research highlights
-\begin{highlights}
-\item Research highlights item 1
-\item Research highlights item 2
-\item Research highlights item 3
-\end{highlights}
-
-% Keywords
-% Each keyword is seperated by \sep
 \begin{keywords}
-quadrupole exciton \sep polariton \sep \WGM \sep \BEC
+Cyclic bandwidth minimization \sep SAT encoding \sep Order encoding \sep Incremental SAT \sep Constraint programming \sep Mixed integer linear programming \sep Symmetry breaking
 \end{keywords}
-
 
 \maketitle
 
 \section{Introduction}
+\label{sec:intro}
 
-The Elsevier cas-sc class is based on the
-standard article class and supports almost all of the functionality of
-that class. In addition, it features commands and options to format the
-\begin{itemize} \item document style \item baselineskip \item front
-matter \item keywords and MSC codes \item theorems, definitions and
-proofs \item lables of enumerations \item citation style and labeling.
-\end{itemize}
+Graph layout problems arrange the vertices of a graph on a target structure under different optimization objectives, with applications in VLSI design, interconnection networks, and sparse matrix computations~\citep{leung1984,handbooksat2021}. In the classical bandwidth minimization problem (BMP), vertices receive distinct positions on a path and the objective is the largest distance between the positions of adjacent vertices. The \emph{Cyclic Bandwidth Minimization Problem} (CBMP) replaces the path by a cycle $C_n$, so distances wrap around the cycle~\citep{leung1984,lin1994}. The cyclic distance is not convex in the labels, which makes linear and constraint models of CBMP harder to write and to solve than those of BMP.
 
-This class depends on the following packages
-for its proper functioning:
+CBMP was introduced to model the design of ring interconnection networks~\citep{leung1984}. It has since been used as a model for VLSI design, data structure representations, code design, and the embedding of parallel computations into rings of processors~\citep{hromkovic1992,ren2020nils}. The decision version of CBMP is NP-complete~\citep{lin1994}. Early studies were mainly theoretical and established exact cyclic bandwidths for special graph classes and bounds for general graphs~\citep{hromkovic1992,lin1994}. Practical methods are mostly heuristics, including the tabu search $TS_{CB}$ of \citet{rodrigueztello2015}, the iterated three-phase search ITPS of \citet{ren2019}, and the new iterated local search NILS of \citet{ren2020nils}. These methods return upper bounds without a certificate of optimality. The only exact algorithm reported in this line of work is a branch-and-bound method that solves graphs with up to 40 vertices~\citep{romero2012}.
 
+Boolean satisfiability (SAT) solving has become an effective exact approach for graph problems such as graph coloring, bandwidth coloring, and antibandwidth~\citep{prestwich2009,tamura2009,ignatiev2018}. A SAT approach reduces the optimization problem to a sequence of decision problems ``is there a labeling with cyclic bandwidth at most $B$?'', and a conflict-driven clause learning (CDCL) solver such as CaDiCaL~\citep{biere2024} answers each of them with a satisfying labeling or a proof of unsatisfiability. The smallest satisfiable $B$ is then a certified optimum.
+
+This paper studies this approach for CBMP. Its contributions are the following.
 \begin{enumerate}
-\itemsep=0pt
-\item {natbib.sty} for citation processing;
-\item {geometry.sty} for margin settings;
-\item {fleqn.clo} for left aligned equations;
-\item {graphicx.sty} for graphics inclusion;
-\item {hyperref.sty} optional packages if hyperlinking is
-  required in the document;
-\end{enumerate}  
-
-All the above packages are part of any
-standard \LaTeX{} installation.
-Therefore, the users need not be
-bothered about downloading any extra packages.
-
-\section{Installation}
-
-The package is available at author resources page at Elsevier
-(\url{http://www.elsevier.com/locate/latex}).
-The class may be moved or copied to a place, usually,\linebreak
-\verb+$TEXMF/tex/latex/elsevier/+, %$%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-or a folder which will be read                   
-by \LaTeX{} during document compilation.  The \TeX{} file
-database needs updation after moving/copying class file.  Usually,
-we use commands like \verb+mktexlsr+ or \verb+texhash+ depending
-upon the distribution and operating system.
-
-\section{Front matter}
-
-The author names and affiliations could be formatted in two ways:
-\begin{enumerate}[(1)]
-\item Group the authors per affiliation.
-\item Use footnotes to indicate the affiliations.
+    \item Two SAT encodings of the CBMP decision problem: a \emph{pairwise encoding} with one-hot label variables and forbidden label pairs, and an \emph{order encoding} with threshold literals, cardinality-based injectivity, and selector-guarded cyclic distance regions.
+    \item Two solving schemes: repeated SAT calls with binary search for both encodings, and an incremental descending search for the pairwise encoding that adds only the clauses of the new bound to a persistent solver.
+    \item Rotation and reflection symmetry-breaking constraints for the host cycle, applied uniformly to the SAT, CP, and MIP models.
+    \item CP baselines in CPLEX CP Optimizer and OR-Tools CP-SAT, and a MIP baseline solved by Gurobi, CPLEX MIP, and HiGHS.
+    \item An evaluation on 59 Harwell--Boeing instances under a 300~s limit, with figures produced by the \texttt{cnsplots} library~\citep{cnsplots}.
 \end{enumerate}
-See the front matter of this document for examples. 
-You are recommended to conform your choice to the journal you 
-are submitting to.
 
-\section{Bibliography styles}
+The remainder of the paper is organized as follows. Section~\ref{sec:formulations} defines CBMP, reviews related work, and presents the MIP and CP baselines. Section~\ref{sec:sat} presents the SAT encodings, the solving schemes, and symmetry breaking. Section~\ref{sec:experiments} reports the computational experiments. Section~\ref{sec:conclusion} concludes the paper.
 
-There are various bibliography styles available. You can select the
-style of your choice in the preamble of this document. These styles are
-Elsevier styles based on standard styles like Harvard and Vancouver.
-Please use Bib\TeX\ to generate your bibliography and include DOIs
-whenever available.
+\section{Background and Exact Baselines}
+\label{sec:formulations}
 
-Here are two sample references: \cite{Fortunato2010}
-\cite{Fortunato2010,NewmanGirvan2004}
-\cite{Fortunato2010,Vehlowetal2013}
+\subsection{Problem Definition}
 
-\section{Floats}
-{Figures} may be included using the command,\linebreak 
-\verb+\includegraphics+ in
-combination with or without its several options to further control
-graphic. \verb+\includegraphics+ is provided by {graphic[s,x].sty}
-which is part of any standard \LaTeX{} distribution.
-{graphicx.sty} is loaded by default. \LaTeX{} accepts figures in
-the postscript format while pdf\LaTeX{} accepts {*.pdf},
-{*.mps} (metapost), {*.jpg} and {*.png} formats. 
-pdf\LaTeX{} does not accept graphic files in the postscript format. 
+Let $G=(V,E)$ be a simple undirected graph with vertex set $V=\{1,\dots,n\}$ and edge set $E$, where $|E|=m$. A labeling $\phi\colon V\to\{1,\dots,n\}$ is a bijection that places each vertex at a distinct position of the host cycle $C_n$. For two positions $i,j\in\{1,\dots,n\}$, the cyclic distance is the length of the shorter arc between them on $C_n$, as given in Equation~(\ref{eq:cyclic_dist}).
+\begin{equation}
+    |i-j|_n=\min\bigl(|i-j|,\;n-|i-j|\bigr)
+    \label{eq:cyclic_dist}
+\end{equation}
+Equation~(\ref{eq:cb_def}) defines the cyclic bandwidth of $G$ under $\phi$ as the largest cyclic distance over all edges, and CBMP seeks the minimum value $B^*(G)$ in Equation~(\ref{eq:cbmp_obj}), where $\Pi_n$ is the set of all $n!$ labelings.
+\begin{equation}
+    CB(G,\phi)=\max_{\{u,v\}\in E}|\phi(u)-\phi(v)|_n
+    \label{eq:cb_def}
+\end{equation}
+\begin{equation}
+    B^*(G)=\min_{\phi\in\Pi_n}CB(G,\phi)
+    \label{eq:cbmp_obj}
+\end{equation}
+Since no cyclic distance exceeds $\lfloor n/2\rfloor$, we have $B^*(G)\le\lfloor n/2\rfloor$. A vertex $v$ with $\deg(v)=\Delta(G)$ must have its neighbors at distinct positions within cyclic distance $B$ of $\phi(v)$, and there are only $2B$ such positions. Hence $B^*(G)\ge\lceil\Delta(G)/2\rceil$. All models in this paper use the search interval in Equation~(\ref{eq:bounds}).
+\begin{equation}
+    L=\lceil\Delta(G)/2\rceil\;\le\;B^*(G)\;\le\;U=\lfloor n/2\rfloor
+    \label{eq:bounds}
+\end{equation}
 
-\begin{figure}
-	\centering
-		\includegraphics[scale=.75]{figs/Fig1.pdf}
-	\caption{The evanescent light - $1S$ quadrupole coupling
-	($g_{1,l}$) scaled to the bulk exciton-photon coupling
-	($g_{1,2}$). The size parameter $kr_{0}$ is denoted as $x$ and
-	the \PMS is placed directly on the cuprous oxide sample ($\delta
-	r=0$, See also Table \protect\ref{tbl1}).}
-	\label{FIG:1}
-\end{figure}
+\subsection{Related Work}
 
+CBMP was introduced by \citet{leung1984} for ring interconnection networks, and \citet{lin1994} proved that its decision version is NP-complete. \citet{hromkovic1992} related the cyclic bandwidth to the classical bandwidth and studied embeddings of interconnection networks into rings of processors. Later theoretical work determined exact cyclic bandwidths for special graph classes and derived lower and upper bounds for general graphs; \citet{ren2020nils} summarize these results.
 
-The \verb+table+ environment is handy for marking up tabular
-material. If users want to use {multirow.sty},
-{array.sty}, etc., to fine control/enhance the tables, they
-are welcome to load any package of their choice and
-{cas-sc.cls} will work in combination with all loaded
-packages.
+Computational work on CBMP is dominated by heuristics. \citet{rodrigueztello2015} proposed the tabu search $TS_{CB}$, \citet{ren2019} proposed the iterated three-phase search ITPS, and \citet{ren2020nils} proposed NILS, which improves the best-known values on a benchmark of 113 instances that includes Harwell--Boeing matrices. These heuristics stop on time or iteration limits and report upper bounds. On the exact side, \citet{romero2012} proposed a branch-and-bound algorithm that solves graphs with up to 40 vertices. To our knowledge, SAT encodings of CBMP and a direct comparison of SAT with commercial CP and MIP solvers on this problem have not been reported. This gap motivates the study in this paper.
 
-\begin{table}[width=.9\linewidth,cols=4,pos=h]
-\caption{This is a test caption. This is a test caption. This is a test
-caption. This is a test caption.}\label{tbl1}
-\begin{tabular*}{\tblwidth}{@{} LLLL@{} }
+\subsection{Mixed Integer Linear Programming Formulation}
+
+The MIP baseline uses binary assignment variables $x_{v,i}$, equal to 1 if and only if $\phi(v)=i$, and an integer position $p_v$ for each vertex. For each edge $e=\{u,v\}\in E$, the integer variable $d_e$ stores the forward offset $(p_v-p_u)\bmod n$, the binary variable $w_e$ indicates that the offset wraps around, and the binary variable $s_e$ selects which of the two arcs between $u$ and $v$ is bounded by $B$. Equations~(\ref{eq:mip_obj})--(\ref{eq:mip_domains}) give the formulation.
+\begin{align}
+    \min\quad & B \label{eq:mip_obj}\\
+    \text{s.t.}\quad & \sum_{i=1}^{n}x_{v,i}=1 && \forall v\in V \label{eq:mip_alo_v}\\
+    & \sum_{v\in V}x_{v,i}=1 && \forall i\in\{1,\dots,n\} \label{eq:mip_alo_p}\\
+    & p_v=\sum_{i=1}^{n}i\,x_{v,i} && \forall v\in V \label{eq:mip_pos}\\
+    & p_v-p_u=d_e-n\,w_e && \forall e=\{u,v\}\in E \label{eq:mip_offset}\\
+    & d_e\le B+n\,(1-s_e) && \forall e\in E \label{eq:mip_arc1}\\
+    & n-d_e\le B+n\,s_e && \forall e\in E \label{eq:mip_arc2}\\
+    & x_{v,i},\,w_e,\,s_e\in\{0,1\},\quad d_e\in\{0,\dots,n-1\},\quad B\in\{L,\dots,U\} \label{eq:mip_domains}
+\end{align}
+Constraints~(\ref{eq:mip_alo_v}) and~(\ref{eq:mip_alo_p}) make the assignment a bijection, and Constraint~(\ref{eq:mip_pos}) defines the position of each vertex. Because $d_e\in\{0,\dots,n-1\}$ and $p_v-p_u\in\{-(n-1),\dots,n-1\}$, Constraint~(\ref{eq:mip_offset}) forces $d_e=(p_v-p_u)\bmod n$, with $w_e=1$ exactly when $p_v<p_u$. The two arcs between $u$ and $v$ have lengths $d_e$ and $n-d_e$, and the cyclic distance is the smaller of the two. If $s_e=1$, Constraint~(\ref{eq:mip_arc1}) bounds $d_e$ by $B$ and Constraint~(\ref{eq:mip_arc2}) is inactive; if $s_e=0$, the roles are exchanged. Therefore the constraints admit a solution exactly when $\min(d_e,n-d_e)=|p_u-p_v|_n\le B$ for every edge, and minimizing $B$ in~(\ref{eq:mip_obj}) minimizes the cyclic bandwidth. The model is solved by Gurobi~\citep{gurobi}, CPLEX MIP~\citep{cplex}, and HiGHS~\citep{huangfu2018}.
+
+\subsection{Constraint Programming Formulations}
+
+The CP models use an integer position $p_v\in\{1,\dots,n\}$ for each vertex and an integer bandwidth variable $B\in\{L,\dots,U\}$. Equations~(\ref{eq:cp_obj})--(\ref{eq:cp_dist}) give the common model.
+\begin{align}
+    \min\quad & B \label{eq:cp_obj}\\
+    \text{s.t.}\quad & \textsc{AllDifferent}(p_1,\dots,p_n) \label{eq:cp_alldiff}\\
+    & |p_u-p_v|\le B\;\lor\;|p_u-p_v|\ge n-B && \forall \{u,v\}\in E \label{eq:cp_dist}
+\end{align}
+The \textsc{AllDifferent} constraint enforces injectivity and is propagated by matching-based filtering~\citep{regin1994}. Constraint~(\ref{eq:cp_dist}) states that either the direct arc or the wrap-around arc between $u$ and $v$ has length at most $B$, which is equivalent to $|p_u-p_v|_n\le B$. The CPLEX CP Optimizer model states Constraint~(\ref{eq:cp_dist}) directly as a logical disjunction. The OR-Tools CP-SAT model~\citep{ortools} uses an equivalent formulation with auxiliary variables: it introduces $o_e=(p_v-p_u+n)\bmod n$ with a modulo constraint, $\delta_e=\min(o_e,\,n-o_e)$ with a minimum constraint, and $B=\max_{e\in E}\delta_e$ with a maximum constraint.
+
+\section{SAT-Based Exact Approach}
+\label{sec:sat}
+
+\subsection{Decision Framework}
+
+For a fixed threshold $B$, the SAT approach builds a CNF formula $\mathcal{F}(B)$ that is satisfiable if and only if a labeling $\phi$ with $CB(G,\phi)\le B$ exists. A satisfying assignment is decoded into a labeling, and its actual cyclic bandwidth $CB(G,\phi)\le B$ is computed and verified. An unsatisfiable formula proves $B^*(G)\ge B+1$. The optimum is certified once a labeling of bandwidth $b$ is known and $\mathcal{F}(b-1)$ is unsatisfiable, or once $b=L$.
+
+\subsection{Pairwise SAT Encoding}
+\label{sec:pairwise}
+
+The pairwise encoding uses one Boolean variable $x_{v,i}$ for each vertex $v\in V$ and label $i\in\{1,\dots,n\}$, true exactly when $\phi(v)=i$. Equations~(\ref{eq:alo_v})--(\ref{eq:amo_p}) make $\phi$ a bijection. Each vertex receives at least one and at most one label, and each label is used by at least one and at most one vertex. The at-most-one (AMO) constraints use the pairwise encoding~\citep{prestwich2009}.
+\begin{align}
+    & \textstyle\bigvee_{i=1}^{n}x_{v,i} && \forall v\in V \label{eq:alo_v}\\
+    & \neg x_{v,i}\lor\neg x_{v,j} && \forall v\in V,\;1\le i<j\le n \label{eq:amo_v}\\
+    & \textstyle\bigvee_{v\in V}x_{v,i} && \forall i\in\{1,\dots,n\} \label{eq:alo_p}\\
+    & \neg x_{u,i}\lor\neg x_{v,i} && \forall\, 1\le u<v\le n,\;i\in\{1,\dots,n\} \label{eq:amo_p}
+\end{align}
+The bandwidth condition forbids, for each edge, every pair of labels whose cyclic distance exceeds $B$. Let $\mathcal{P}_d=\{(i,j)\in\{1,\dots,n\}^2 : |i-j|_n=d\}$ be the set of label pairs at cyclic distance exactly $d$. The clauses of Equation~(\ref{eq:pairwise_dist}) forbid distance $d$ on every edge, and Equation~(\ref{eq:pairwise_edge}) defines the pairwise formula for threshold $B$.
+\begin{align}
+    \mathcal{D}_d &= \bigwedge_{\{u,v\}\in E}\;\bigwedge_{(i,j)\in\mathcal{P}_d}\bigl(\neg x_{u,i}\lor\neg x_{v,j}\bigr) \label{eq:pairwise_dist}\\
+    \mathcal{F}_{\text{pair}}(B) &= \mathcal{F}_{\text{bij}}\;\land\;\mathcal{F}_{\text{sym}}\;\land\;\bigwedge_{d=B+1}^{\lfloor n/2\rfloor}\mathcal{D}_d \label{eq:pairwise_edge}
+\end{align}
+Here $\mathcal{F}_{\text{bij}}$ is the conjunction of Equations~(\ref{eq:alo_v})--(\ref{eq:amo_p}) and $\mathcal{F}_{\text{sym}}$ is the optional symmetry-breaking component of Section~\ref{sec:symmetry}. For each label $i$, exactly $n-2B-1$ labels lie at cyclic distance greater than $B$, so the distance part contains $m\,n\,\max(0,n-2B-1)$ binary clauses. The encoding uses $n^2$ variables and $\Theta(n^3)$ clauses for $\mathcal{F}_{\text{bij}}$, so its total size is $\Theta(n^3+m\,n\,(n-2B))$ clauses.
+
+\subsection{Order SAT Encoding}
+\label{sec:order}
+
+The order encoding~\citep{tamura2009} represents each label $\phi(v)$ by threshold literals. For each vertex $v\in V$ and threshold $k\in\{2,\dots,n\}$, the variable $O_{v,k}$ is true exactly when $\phi(v)\ge k$. By convention $O_{v,k}=\top$ for $k\le1$ and $O_{v,k}=\bot$ for $k>n$, and clauses that contain these constants are simplified before they are added. A label is decoded as $\phi(v)=1+|\{k : O_{v,k}\}|$.
+
+\subsubsection{Monotonicity and Injectivity}
+Equation~(\ref{eq:order_monotonicity}) states that $\phi(v)\ge k+1$ implies $\phi(v)\ge k$.
+\begin{equation}
+    \neg O_{v,k+1}\lor O_{v,k}\qquad\forall v\in V,\;2\le k\le n-1
+    \label{eq:order_monotonicity}
+\end{equation}
+Because $\phi$ is a bijection onto $\{1,\dots,n\}$, exactly $n-k+1$ vertices have a label of at least $k$. Conversely, if Equation~(\ref{eq:order_cardinality}) holds for every $k$, then exactly one vertex has label $k$ for each $k$, so $\phi$ is a bijection.
+\begin{equation}
+    \sum_{v\in V}O_{v,k}=n-k+1\qquad\forall k\in\{2,\dots,n\}
+    \label{eq:order_cardinality}
+\end{equation}
+These cardinality constraints are translated into CNF with the sequential counter encoding of \citet{sinz2005}, as implemented in PySAT~\citep{ignatiev2018}. A sequential counter for a bound $t$ over $n$ literals uses $\mathcal{O}(n\,t)$ auxiliary variables and clauses, so the $n-1$ constraints of Equation~(\ref{eq:order_cardinality}) contribute $\mathcal{O}(n^3)$ auxiliary variables and clauses in total.
+
+\subsubsection{Cyclic Distance Clauses}
+For an edge $\{u,v\}$, the condition $|\phi(u)-\phi(v)|_n\le B$ holds if and only if one of three regions contains the pair of labels: the linear band $|\phi(u)-\phi(v)|\le B$, the wrap region $\phi(v)-\phi(u)\ge n-B$, or the symmetric wrap region $\phi(u)-\phi(v)\ge n-B$. Each edge receives three selector variables $a_e$, $b_e$, and $c_e$, one per region, and Equation~(\ref{eq:order_sel}) requires at least one of them to be true. Let $c=n-B$.
+\begin{align}
+    & a_e\lor b_e\lor c_e \label{eq:order_sel}\\
+    & \neg a_e\lor\neg O_{v,k}\lor O_{u,k-B},\quad \neg a_e\lor\neg O_{u,k}\lor O_{v,k-B} && \forall k\in\{2,\dots,n\} \label{eq:order_band}\\
+    & \neg b_e\lor\neg O_{u,k}\lor O_{v,k+c} && \forall k\in\{1,\dots,n\} \label{eq:order_wrap1}\\
+    & \neg c_e\lor\neg O_{v,k}\lor O_{u,k+c} && \forall k\in\{1,\dots,n\} \label{eq:order_wrap2}
+\end{align}
+Equation~(\ref{eq:order_band}) expresses $\phi(u)\ge\phi(v)-B$ and $\phi(v)\ge\phi(u)-B$: whenever one label is at least $k$, the other is at least $k-B$. Equation~(\ref{eq:order_wrap1}) expresses $\phi(v)\ge\phi(u)+c$ in the same way. For $k=1$ it reduces to $\neg b_e\lor O_{v,1+c}$, and for $k+c>n$ it reduces to $\neg b_e\lor\neg O_{u,k}$. Equation~(\ref{eq:order_wrap2}) is the symmetric case. These clauses are added only when $B<\lfloor n/2\rfloor$, because every labeling satisfies $B=\lfloor n/2\rfloor$. Each edge contributes three selector variables and at most $4n+1$ clauses, so the distance part has size $\mathcal{O}(m\,n)$, compared with $\Theta(m\,n\,(n-2B))$ for the pairwise encoding. The total order formula, including the cardinality constraints and the symmetry component of Section~\ref{sec:symmetry}, is denoted by $\mathcal{F}_{\text{ord}}(B)$.
+
+\subsection{Solving Schemes}
+\label{sec:incremental}
+
+\subsubsection{Repeated SAT Calls with Binary Search}
+The non-incremental scheme is used with both encodings. It maintains an interval $(lo,hi]$ that contains $B^*(G)$, initialized with $lo=L-1$ and $hi=U$. At each step it builds a fresh formula $\mathcal{F}(B)$ for $B=\lfloor(lo+hi)/2\rfloor$ and solves it with a new CaDiCaL instance in a separate process. If the formula is satisfiable with labeling $\phi$, the scheme sets $hi\gets\min(B,CB(G,\phi))$; otherwise it sets $lo\gets B$. The search stops with $B^*(G)=hi$ when $hi=lo+1$, and it uses $\mathcal{O}(\log n)$ SAT calls.
+
+\subsubsection{Incremental Descending Search}
+The incremental scheme is implemented for the pairwise encoding. It exploits the fact that, in Equation~(\ref{eq:pairwise_edge}), lowering the threshold from $K$ to $K'<K$ only adds the clause groups $\mathcal{D}_{K'+1},\dots,\mathcal{D}_K$.
+\begin{enumerate}
+    \item The solver is initialized once with $\mathcal{F}_{\text{pair}}(U)=\mathcal{F}_{\text{bij}}\land\mathcal{F}_{\text{sym}}$, which contains no distance clauses.
+    \item The solver is called. If the formula is satisfiable, the decoded labeling $\phi$ has bandwidth $b=CB(G,\phi)$. If $b=L$, the labeling is optimal and the search stops.
+    \item Otherwise the scheme adds $\mathcal{D}_b,\dots,\mathcal{D}_K$ to the same solver, where $K$ is the current threshold, sets $K\gets b-1$, and returns to Step~2. Thresholds between $b$ and the previous value of $K$ are skipped.
+    \item If the solver reports unsatisfiability at threshold $K=b-1$, the last labeling is certified optimal with $B^*(G)=b$.
+\end{enumerate}
+All added clauses remain valid for every smaller threshold, so the clauses learned in earlier calls are kept and reused. The first call is easy because the formula only requires a bijection, which gives the incremental scheme a feasible labeling early in the search.
+
+\subsection{Symmetry Breaking}
+\label{sec:symmetry}
+
+The dihedral group $D_n$ of the host cycle has $2n$ elements, consisting of $n$ rotations $\phi(v)\mapsto((\phi(v)-1+r)\bmod n)+1$ and $n$ reflections. Each of these maps preserves all cyclic distances, so every labeling belongs to a class of up to $2n$ labelings with the same cyclic bandwidth. Let $a$ be an anchor vertex and let $t$ be a second vertex. In the implementation, $a$ is the first vertex in the order of the input file, and $t$ is the first neighbor of $a$, or the second vertex if $a$ is isolated.
+
+\paragraph{Rotation.} Any labeling can be rotated so that $\phi(a)=1$. Equation~(\ref{eq:sym_rotation}) adds this restriction as unit clauses in both encodings, using monotonicity in the order encoding.
+\begin{equation}
+    x_{a,1}\quad\text{(pairwise)},\qquad \neg O_{a,k}\;\;\forall k\in\{2,\dots,n\}\quad\text{(order)}
+    \label{eq:sym_rotation}
+\end{equation}
+
+\paragraph{Reflection.} With $\phi(a)=1$ fixed, the reflection $\rho(i)=((1-i)\bmod n)+1$ fixes label 1 and maps every label $i\ge2$ to $n+2-i$. If $\phi(t)>\lfloor n/2\rfloor+1$, then $\rho(\phi(t))=n+2-\phi(t)\le\lfloor n/2\rfloor+1$, because $n-\lfloor n/2\rfloor=\lceil n/2\rceil\le\lfloor n/2\rfloor+1$. Hence some optimal labeling satisfies Equation~(\ref{eq:sym_reflection}), which is added as unit clauses.
+\begin{equation}
+    \neg x_{t,i}\;\;\forall i>\lfloor n/2\rfloor+1\quad\text{(pairwise)},\qquad \neg O_{t,\lfloor n/2\rfloor+2}\quad\text{(order)}
+    \label{eq:sym_reflection}
+\end{equation}
+Both restrictions keep at least one labeling of every symmetry class, so they do not change $B^*(G)$. The CP and MIP baselines use the same restrictions: $p_a=1$ and $p_t\le\lfloor n/2\rfloor+1$ in the CP models, and $x_{a,1}=1$ and $\sum_{i>\lfloor n/2\rfloor+1}x_{t,i}=0$ in the MIP model.
+
+\section{Computational Experiments}
+\label{sec:experiments}
+
+\subsection{Experimental Setup}
+
+The benchmark is taken from the Harwell--Boeing sparse matrix collection~\citep{duff1989}. The repository contains 292 matrices, and each square matrix is converted into a simple undirected graph whose edges are its off-diagonal nonzero entries. We removed 17 matrices without off-diagonal entries, 16 non-square matrices, 4 matrices whose graph density is at least 0.8, and 196 matrices for which the size estimate $m\,n^2$ of the pairwise distance clauses exceeds $5\times10^{7}$. The remaining 59 instances have between 24 and 245 vertices and between 46 and 1758 edges.
+
+The SAT encodings are implemented in Python with PySAT~\citep{ignatiev2018} and solved by CaDiCaL~1.9.5~\citep{biere2024} on a single thread. The baselines are IBM ILOG CPLEX Optimization Studio~22.1 (CP Optimizer and CPLEX MIP through \texttt{docplex})~\citep{cplex}, OR-Tools CP-SAT~9.15~\citep{ortools}, Gurobi~12.0.3~\citep{gurobi}, and HiGHS~1.15~\citep{huangfu2018}; the CP and MIP solvers use 8 threads and a relative MIP gap of 0. All experiments ran on a workstation with an Intel Core i7-12700KF processor and 32~GB of RAM. Each solver received a wall-clock limit of 300~s per instance, including model or CNF construction. Every labeling returned by any solver was checked independently by recomputing its cyclic bandwidth.
+
+Each solver was run in three configurations: \emph{None} (no symmetry breaking), \emph{Rotation} (Equation~(\ref{eq:sym_rotation})), and \emph{Rotation + Reflection} (Equations~(\ref{eq:sym_rotation}) and~(\ref{eq:sym_reflection})). Unless stated otherwise, results refer to the Rotation + Reflection configuration. A run is reported as OPT when optimality is certified, as FEAS when a verified labeling is found without an optimality proof, and as TO when no labeling is found. All figures were generated with the \texttt{cnsplots} library~\citep{cnsplots}.
+
+\subsection{Overall Performance Comparison}
+
+Table~\ref{tab:overall_summary} summarizes the results of the eight solvers. The order encoding certifies 23 of the 59 instances, the largest number among the evaluated methods. It is followed by CP-SAT with 20, the pairwise encoding with 16, and the incremental pairwise scheme with 15. The column ``Best UB'' counts the instances on which a solver returns the smallest bandwidth found by any of the eight solvers. CPLEX CP certifies only 12 instances, but it returns the best upper bound on 57 of the 59 instances, more than any other solver.
+
+\begin{table}[htbp]
+\centering
+\caption{Overall results on 59 Harwell--Boeing instances with rotation and reflection symmetry breaking and a 300~s limit. OPT: certified optimal; FEAS: verified labeling without optimality proof; TO: no labeling found; Best UB: number of instances on which the solver returns the smallest bandwidth found by any solver; Avg time: mean wall-clock time over all 59 instances.}
+\label{tab:overall_summary}
+\begin{tabular*}{\tblwidth}{@{}LLCCCCCC@{}}
 \toprule
-Col 1 & Col 2 & Col 3 & Col4\\
+\textbf{Solver} & \textbf{Paradigm} & \textbf{OPT} & \textbf{FEAS} & \textbf{TO} & \textbf{OPT (\%)} & \textbf{Best UB} & \textbf{Avg time (s)} \\
 \midrule
-12345 & 12345 & 123 & 12345 \\
-12345 & 12345 & 123 & 12345 \\
-12345 & 12345 & 123 & 12345 \\
-12345 & 12345 & 123 & 12345 \\
-12345 & 12345 & 123 & 12345 \\
+SAT (Order) & SAT, order encoding & \textbf{23} & 27 & 9 & \textbf{39.0} & 31 & \textbf{194.78} \\
+OR-Tools CP-SAT & CP (lazy clause generation) & 20 & 39 & 0 & 33.9 & 30 & 216.06 \\
+SAT (Pairwise) & SAT, pairwise encoding & 16 & 41 & 2 & 27.1 & 22 & 236.73 \\
+SAT (Incremental) & SAT, incremental pairwise & 15 & 44 & 0 & 25.4 & 24 & 240.16 \\
+CPLEX CP & CP Optimizer & 12 & 47 & 0 & 20.3 & \textbf{57} & 246.51 \\
+Gurobi MIP & MIP & 7 & 52 & 0 & 11.9 & 19 & 269.53 \\
+CPLEX MIP & MIP & 7 & 52 & 0 & 11.9 & 10 & 269.82 \\
+HiGHS MIP & MIP & 1 & 28 & 30 & 1.7 & 1 & 295.70 \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\section[Theorem and ...]{Theorem and theorem like environments}
+Gurobi and CPLEX MIP certify the same 7 instances, all with at most 57 vertices. HiGHS certifies only \texttt{can\_24} and finds no labeling on 30 instances. The big-$M$ Constraints~(\ref{eq:mip_arc1}) and~(\ref{eq:mip_arc2}) give a weak linear relaxation: setting $s_e=\tfrac12$ satisfies both constraints whenever $B\ge|d_e-n/2|$, and $d_e$ can also take fractional values through $w_e$, so the relaxation bound can stay at the trivial value $L$. On larger instances the MIP solvers therefore return poor incumbents, for example $B=48$ for Gurobi on \texttt{can\_144}, whose optimum is 7.
 
-{cas-sc.cls} provides a few shortcuts to format theorems and
-theorem-like environments with ease. In all commands the options that
-are used with the \verb+\newtheorem+ command will work exactly in the same
-manner. {cas-sc.cls} provides three commands to format theorem or
-theorem-like environments: 
+The order encoding finds no labeling on 9 instances, all with at least 132 vertices, such as \texttt{bcsstk04} and the four \texttt{fs\_183} matrices. Binary search starts at the midpoint of $[L,U]$, so the first SAT call may already be a hard instance near the optimum, and the $\mathcal{O}(n^3)$ cardinality constraints make the formula large. The incremental scheme does not have this problem because its first call has no distance clauses, and it returns a labeling on all 59 instances.
 
-\begin{verbatim}
- \newtheorem{theorem}{Theorem}
- \newtheorem{lemma}[theorem]{Lemma}
- \newdefinition{rmk}{Remark}
- \newproof{pf}{Proof}
- \newproof{pot}{Proof of Theorem \ref{thm2}}
-\end{verbatim}
+\subsection{Cactus Runtime Profile}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/fig1_cactus_runtime.png}
+    \caption{Cactus plot of the eight solvers with rotation and reflection symmetry breaking. A point $(k,t)$ means that the $k$-th fastest certified instance of a solver needed $t$ seconds. The number of certified instances is shown in parentheses.}
+    \label{fig:cactus}
+\end{figure}
 
-The \verb+\newtheorem+ command formats a
-theorem in \LaTeX's default style with italicized font, bold font
-for theorem heading and theorem number at the right hand side of the
-theorem heading.  It also optionally accepts an argument which
-will be printed as an extra heading in parentheses. 
+Figure~\ref{fig:cactus} shows the cactus profile. The $x$-axis is the number of instances certified optimal, and the $y$-axis is the solving time on a logarithmic scale. Within 1~s, the order encoding, the incremental scheme, and CPLEX CP each certify 5 instances, while the pairwise encoding and CP-SAT certify 3. Within 30~s, the order encoding certifies 18 instances, compared with 10 for CP-SAT, 9 for CPLEX CP, and 8 for each pairwise scheme. The order encoding reaches 20 instances at 50~s and 23 at the 300~s limit, whereas CP-SAT reaches 20 and CPLEX CP 12. The MIP curves rise steeply after their first few instances.
 
-\begin{verbatim}
-  \begin{theorem} 
-   For system (8), consensus can be achieved with 
-   $\|T_{\omega z}$ ...
-     \begin{eqnarray}\label{10}
-     ....
-     \end{eqnarray}
-  \end{theorem}
-\end{verbatim}  
+\subsection{Impact of Symmetry Breaking}
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/fig2_symmetry_impact.png}
+    \caption{Number of certified optimal instances for each solver under the three symmetry-breaking configurations: None, Rotation, and Rotation + Reflection.}
+    \label{fig:symmetry}
+\end{figure}
 
-\newtheorem{theorem}{Theorem}
+Figure~\ref{fig:symmetry} reports the number of certified instances under the three configurations. Rotation breaking gives most of the gain, and reflection breaking adds at most one instance.
+\begin{itemize}
+    \item SAT (Pairwise) increases from 10 (None) to 15 (Rotation) and 16 (Rotation + Reflection), a 60\% gain.
+    \item SAT (Incremental) increases from 11 to 14 and 15.
+    \item OR-Tools CP-SAT increases from 14 to 20 under both restricted configurations, a 43\% gain.
+    \item SAT (Order) increases from 21 to 22 and 23. Its gain is smaller because the order encoding already certifies most of these instances without symmetry breaking.
+    \item CPLEX CP and CPLEX MIP do not change under rotation breaking (11 and 6) and gain one instance with reflection breaking. Gurobi increases from 4 to 7 under rotation breaking.
+\end{itemize}
+Fixing $\phi(a)=1$ removes the $n$ rotations of each labeling, and the reflection restriction halves the remaining space. The gain is largest for the encodings that rely on unsatisfiability proofs, because without these restrictions the solver must refute up to $2n$ symmetric copies of each partial labeling.
 
-\begin{theorem}
-For system (8), consensus can be achieved with 
-$\|T_{\omega z}$ ...
-\begin{eqnarray}\label{10}
-....
-\end{eqnarray}
-\end{theorem}
+\subsection{Bandwidth Quality on Representative Instances}
 
-The \verb+\newdefinition+ command is the same in
-all respects as its \verb+\newtheorem+ counterpart except that
-the font shape is roman instead of italic.  Both
-\verb+\newdefinition+ and \verb+\newtheorem+ commands
-automatically define counters for the environments defined.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.98\linewidth]{figures/fig3_bandwidth_comparison.png}
+    \caption{Cyclic bandwidth returned by SAT (Order), OR-Tools CP-SAT, CPLEX CP, and Gurobi MIP on 16 representative Harwell--Boeing instances (logarithmic scale). A star (*) marks a certified optimal value.}
+    \label{fig:bandwidth}
+\end{figure}
 
-The \verb+\newproof+ command defines proof environments with
-upright font shape.  No counters are defined. 
+Figure~\ref{fig:bandwidth} compares the bandwidths returned by four solvers on 16 instances. On the eight smallest instances in the figure, from \texttt{bcspwr01} to \texttt{dwt\_72} ($n\le72$), the four solvers return the same bandwidth, although not all of them certify it. For example, all four return $B=7$ on \texttt{bcspwr02}, but only the order encoding (3.83~s) and CP-SAT (254.21~s) certify it. On larger instances the results differ.
+\begin{itemize}
+    \item On \texttt{ash85} ($n=85$, $m=219$), the order encoding certifies $B^*=9$ in 17.71~s. CPLEX CP also finds $B=9$ without a proof, while CP-SAT and Gurobi return $B=10$.
+    \item On \texttt{bcsstk03} ($n=112$, $m=264$), the order encoding, CP-SAT, and CPLEX CP certify $B^*=3$ in 5.52~s, 32.38~s, and 1.00~s, respectively, while Gurobi returns $B=12$.
+    \item On \texttt{can\_144} ($n=144$, $m=576$), the order encoding, CP-SAT, and CPLEX CP certify $B^*=7$, while Gurobi returns $B=48$.
+    \item On \texttt{dwt\_162} ($n=162$, $m=510$), the order encoding certifies $B^*=9$ in 119.6~s, CPLEX CP finds $B=9$ without a proof, CP-SAT returns 12, and Gurobi returns 31.
+\end{itemize}
 
+\subsection{Pairwise Comparison: SAT (Order) and OR-Tools CP-SAT}
 
-\section[Enumerated ...]{Enumerated and Itemized Lists}
-{cas-sc.cls} provides an extended list processing macros
-which makes the usage a bit more user friendly than the default
-\LaTeX{} list macros.   With an optional argument to the
-\verb+\begin{enumerate}+ command, you can change the list counter
-type and its attributes.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/fig4_scatter_sat_vs_cpsat.png}
+    \caption{Total solving time of SAT (Order) ($x$-axis) and OR-Tools CP-SAT ($y$-axis) on all 59 instances (log--log scale). Points above the dashed diagonal $y=x$ are instances on which SAT (Order) is faster. Runs that reach the limit are drawn at 300~s.}
+    \label{fig:scatter}
+\end{figure}
 
-\begin{verbatim}
- \begin{enumerate}[1.]
- \item The enumerate environment starts with an optional
-   argument `1.', so that the item counter will be suffixed
-   by a period.
- \item You can use `a)' for alphabetical counter and '(i)' 
-  for roman counter.
-  \begin{enumerate}[a)]
-    \item Another level of list with alphabetical counter.
-    \item One more item before we start another.
-    \item One more item before we start another.
-    \item One more item before we start another.
-    \item One more item before we start another.
-\end{verbatim}
+Figure~\ref{fig:scatter} compares the order encoding with CP-SAT, the strongest baseline in terms of certified instances. Both solvers certify 18 common instances. On 15 of them the order encoding is faster, for example \texttt{bcspwr01} (0.32~s versus 0.60~s), \texttt{bcsstk01} (7.50~s versus 49.08~s), and \texttt{can\_61} (29.5~s versus 60.4~s). CP-SAT is faster on \texttt{curtis54}, \texttt{dwt\_66}, and \texttt{can\_144}. The order encoding alone certifies five instances (\texttt{ash85}, \texttt{dwt\_87}, \texttt{nos4}, \texttt{dwt\_162}, and \texttt{dwt\_198}), and CP-SAT alone certifies two (\texttt{arc130} and \texttt{nos1}). CP-SAT often returns the better upper bound on uncertified instances: over all 59 instances, it returns a smaller bandwidth than the order encoding on 26, including the 9 on which the order encoding finds no labeling.
 
-Further, the enhanced list environment allows one to prefix a
-string like `step' to all the item numbers.  
+\subsection{Scaling with Instance Size}
 
-\begin{verbatim}
- \begin{enumerate}[Step 1.]
-  \item This is the first step of the example list.
-  \item Obviously this is the second step.
-  \item The final step to wind up this example.
- \end{enumerate}
-\end{verbatim}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/fig5_scaling.png}
+    \caption{Time to certify optimality as a function of the number of vertices $|V|$ for the instances certified by six solvers.}
+    \label{fig:scaling}
+\end{figure}
 
-\section{Cross-references}
-In electronic publications, articles may be internally
-hyperlinked. Hyperlinks are generated from proper
-cross-references in the article.  For example, the words
-\textcolor{black!80}{Fig.~1} will never be more than simple text,
-whereas the proper cross-reference \verb+\ref{tiger}+ may be
-turned into a hyperlink to the figure itself:
-\textcolor{blue}{Fig.~1}.  In the same way,
-the words \textcolor{blue}{Ref.~[1]} will fail to turn into a
-hyperlink; the proper cross-reference is \verb+\cite{Knuth96}+.
-Cross-referencing is possible in \LaTeX{} for sections,
-subsections, formulae, figures, tables, and literature
-references.
+Figure~\ref{fig:scaling} plots the time to certify optimality against the number of vertices. Gurobi and CPLEX MIP certify no instance with more than 57 vertices. The order encoding certifies instances up to $n=198$ (\texttt{dwt\_198}, $B^*=8$). The pairwise schemes, CP-SAT, and CPLEX CP certify \texttt{nos1} with $n=237$, which has a small optimum $B^*=3$. Instance size alone therefore does not determine difficulty. A small optimal bandwidth makes the distance constraints very tight, so propagation removes most labels early, whereas instances with large optima such as \texttt{bcsstk04} ($n=132$, best $B=38$) remain unsolved by all methods.
 
-\section{Bibliography}
+\section{Conclusion}
+\label{sec:conclusion}
 
-Two bibliographic style files (\verb+*.bst+) are provided ---
-{model1-num-names.bst} and {model2-names.bst} --- the first one can be
-used for the numbered scheme. This can also be used for the numbered
-with new options of {natbib.sty}. The second one is for the author year
-scheme. When  you use model2-names.bst, the citation commands will be
-like \verb+\citep+,  \verb+\citet+, \verb+\citealt+ etc. However when
-you use model1-num-names.bst, you may use only \verb+\cite+ command.
+This paper studied exact methods for the Cyclic Bandwidth Minimization Problem. We formulated a pairwise and an order SAT encoding of the CBMP decision problem, solved them by repeated SAT calls with binary search and, for the pairwise encoding, by an incremental descending search, and removed the rotation and reflection symmetries of the host cycle. We compared these methods with CPLEX CP, OR-Tools CP-SAT, Gurobi, CPLEX MIP, and HiGHS on 59 Harwell--Boeing instances under a 300~s limit.
 
-\verb+thebibliography+ environment.  Each reference is a\linebreak
-\verb+\bibitem+ and each \verb+\bibitem+ is identified by a label,
-by which it can be cited in the text:
-
-\noindent In connection with cross-referencing and
-possible future hyperlinking it is not a good idea to collect
-more that one literature item in one \verb+\bibitem+.  The
-so-called Harvard or author-year style of referencing is enabled
-by the \LaTeX{} package {natbib}. With this package the
-literature can be cited as follows:
-
-\begin{enumerate}[\textbullet]
-\item Parenthetical: \verb+\citep{WB96}+ produces (Wettig \& Brown, 1996).
-\item Textual: \verb+\citet{ESG96}+ produces Elson et al. (1996).
-\item An affix and part of a reference:\break
-\verb+\citep[e.g.][Ch. 2]{Gea97}+ produces (e.g. Governato et
-al., 1997, Ch. 2).
+The main findings are the following.
+\begin{enumerate}
+    \item The order encoding certifies the largest number of instances (23), followed by CP-SAT (20), the pairwise encoding (16), incremental pairwise SAT (15), and CPLEX CP (12). The MIP solvers certify at most 7 instances, none with more than 57 vertices.
+    \item Certification and upper bounds favor different methods. CPLEX CP returns the best upper bound on 57 of 59 instances, while the order encoding finds no labeling on 9 large instances within the limit.
+    \item Rotation symmetry breaking gives most of the gain, increasing the number of certified instances by up to 60\% for the pairwise encoding and by 43\% for CP-SAT.
 \end{enumerate}
 
-In the numbered scheme of citation, \verb+\cite{<label>}+ is used,
-since \verb+\citep+ or \verb+\citet+ has no relevance in the numbered
-scheme.  {natbib} package is loaded by {cas-sc} with
-\verb+numbers+ as default option.  You can change this to author-year
-or harvard scheme by adding option \verb+authoryear+ in the class
-loading command.  If you want to use more options of the {natbib}
-package, you can do so with the \verb+\biboptions+ command.  For
-details of various options of the {natbib} package, please take a
-look at the {natbib} documentation, which is part of any standard
-\LaTeX{} installation.
+The study has limitations. The largest instance has 245 vertices, because the pairwise encoding grows as $\Theta(m\,n^2)$ and larger matrices were excluded. Only the pairwise AMO encoding and the sequential counter were evaluated, although the implementation also supports the other PySAT cardinality encodings. Future work will evaluate these encodings, start the SAT search from heuristic upper bounds such as those of NILS~\citep{ren2020nils} or CPLEX CP, and add an incremental scheme to the order encoding.
+
+\section*{CRediT Authorship Contribution Statement}
+\textbf{Truong Dinh Duc}: Conceptualization, Methodology, Software (SAT encodings, search algorithms, and baseline formulations), Validation.
+\textbf{Hoang Minh Duc}: Methodology, Software (benchmark runner), Investigation, Data Curation.
+\textbf{Le Trung Hieu}: Software (visualization and plotting scripts), Formal Analysis, Writing -- Original Draft, Writing -- Review \& Editing.
+
+\section*{Declaration of Competing Interest}
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Data Availability}
+The source code, benchmark instances, result CSV files, and visualization scripts used in this paper are openly available in the GitHub repository \url{https://github.com/missos1/CBMP-SAT-CP-MIP_ILP}.
 
 \appendix
-\section{My Appendix}
-Appendix sections are coded under \verb+\appendix+.
+\section{Detailed Benchmark Results}
+\label{app:results}
 
-\verb+\printcredits+ command is used after appendix sections to list 
-author credit taxonomy contribution roles tagged using \verb+\credit+ 
-in frontmatter.
+Tables~\ref{tab:detailed_results_part1} and~\ref{tab:detailed_results_part2} report the results of six solvers on all 59 instances with rotation and reflection symmetry breaking. The results of CPLEX MIP and HiGHS, and of the other symmetry-breaking configurations, are available in the repository listed in the Data Availability section.
 
-\printcredits
+\begin{table*}[htbp]
+\centering
+\caption{Detailed results on the 59 Harwell--Boeing instances with rotation and reflection symmetry breaking and a 300~s limit, Part~1 (instances 1--30 in alphabetical order). A value with an asterisk (*) is a certified optimum, followed by the total time in seconds; (FEAS) marks a verified labeling without optimality proof; -- (TO) means that no labeling was found.}
+\label{tab:detailed_results_part1}
+\scriptsize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrllllll@{}}
+\toprule
+\textbf{Instance} & \textbf{$|V|$} & \textbf{$|E|$} & \textbf{SAT (Order)} & \textbf{SAT (Pairwise)} & \textbf{SAT (Incr.)} & \textbf{OR-Tools CP-SAT} & \textbf{CPLEX CP} & \textbf{Gurobi MIP} \\
+\midrule
+\input{table_instances_part1.tex}
+\bottomrule
+\end{tabular*}
+\end{table*}
 
-%% Loading bibliography style file
-% \bibliographystyle{model1-num-names}
-\bibliographystyle{cas-model2-names}
+\begin{table*}[htbp]
+\centering
+\caption{Detailed results on the 59 Harwell--Boeing instances, Part~2 (instances 31--59). Notation as in Table~\ref{tab:detailed_results_part1}.}
+\label{tab:detailed_results_part2}
+\scriptsize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lrrllllll@{}}
+\toprule
+\textbf{Instance} & \textbf{$|V|$} & \textbf{$|E|$} & \textbf{SAT (Order)} & \textbf{SAT (Pairwise)} & \textbf{SAT (Incr.)} & \textbf{OR-Tools CP-SAT} & \textbf{CPLEX CP} & \textbf{Gurobi MIP} \\
+\midrule
+\input{table_instances_part2.tex}
+\bottomrule
+\end{tabular*}
+\end{table*}
 
-% Loading bibliography database
+\bibliographystyle{model1-num-names}
 \bibliography{cas-refs}
 
-
-%\vskip3pt
-
-\bio{}
-Author biography without author photo.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-\endbio
-
-\bio{figs/pic1}
-Author biography with author photo.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-\endbio
-
-\bio{figs/pic1}
-Author biography with author photo.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-Author biography. Author biography. Author biography.
-\endbio
-
 \end{document}
-

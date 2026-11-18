@@ -19,9 +19,9 @@ NP-complete.
 - [x] Pairwise SAT encoding (one-hot + forbidden label pairs)
 - [x] Order SAT encoding (true integer-variable order encoding)
 - [x] SAT bound search (binary search + incremental pairwise) and verification
-- [x] Exact baselines: CPLEX CP, CPLEX MIP, Gurobi, CP-SAT
-- [ ] Benchmark runner + CSV results
-- [ ] Plots (cnsplots) and report
+- [x] Exact baselines: CPLEX CP, CPLEX MIP, Gurobi, CP-SAT, HiGHS
+- [x] Benchmark runner + CSV results (59 Harwell-Boeing instances)
+- [x] Plots (cnsplots) and Elsevier cas-sc scientific report
 
 ## Installation
 
@@ -140,12 +140,15 @@ graphs, check that they agree with each other, and verify symmetry breaking.
 
 ```
 cbmp_cnf.py            SAT encodings (pairwise, order) + model decoding
+cbmp_search.py         SAT bound search and incremental procedure
+generate_figures.py    Publication figures generator using cnsplots
 mtx_parser.py          MatrixMarket / Harwell-Boeing parser -> graph
 classes/graph.py       Graph structure, dataset loading and filters
 classes/benchmarkresult.py
 benchmark/             exact solver baselines and runner
 dataset/               Harwell-Boeing matrices
 matrix_shapes.csv      matrix header information
+result_csv/            Benchmark CSV result files (8 solvers/encodings)
 tests/                 encoding tests
-report/                Elsevier cas-sc manuscript
+report/                Elsevier cas-sc manuscript and figures
 ```
