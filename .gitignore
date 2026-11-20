@@ -79,4 +79,15 @@ docs/_build/
 Thumbs.db
 download_nist.py
 scratch/
-*.log
+
+# LaTeX build artifacts
+report/*.abs
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.log
+report/*.out
+report/*.synctex.gz
+report/*.toc

@@ -37,13 +37,13 @@ Optional exact baselines and report figures:
 docplex config --upgrade "C:\Program Files\IBM\ILOG\CPLEX_Studio222"
 ```
 
-## Encodings (`cbmp_cnf.py`)
+## Encodings (`benchmark/cbmp_cnf.py`)
 
 Both build a CNF for the decision problem `CB(G) <= B`:
 
 ```python
 from classes.graph import Graph
-from cbmp_cnf import build_cnf, decode_model
+from benchmark.cbmp_cnf import build_cnf, decode_model
 from pysat.solvers import Solver
 
 graph = Graph("cycle5", 5)
@@ -72,26 +72,26 @@ cardinality encoding (`pairwise`, `seqcounter`, `totalizer`, ...).
 
 `dataset/` contains 292 matrices from the NIST Harwell-Boeing collection,
 grouped by application (`bcspwr`, `bcsstruc`, `cannes`, `dwt`, `psadmit`,
-`smtape`, ...). `mtx_parser.py` parses MatrixMarket and Harwell-Boeing files
-(including elemental `xxE` matrices) into simple undirected graphs; the full
-shape table is in `matrix_shapes.csv`.
+`smtape`, ...). `benchmark/mtx_parser.py` parses MatrixMarket and Harwell-Boeing
+files (including elemental `xxE` matrices) into simple undirected graphs; the
+full shape table is in `matrix_shapes.csv`.
 
 ```powershell
-.venv\Scripts\python.exe mtx_parser.py dataset
-.venv\Scripts\python.exe mtx_parser.py --shapes dataset
+.venv\Scripts\python.exe -m benchmark.mtx_parser dataset
+.venv\Scripts\python.exe -m benchmark.mtx_parser --shapes dataset
 ```
 
 ## Solving a single instance
 
-`cbmp_search.py` computes the minimum bound `B` (binary search, or incremental
-for the pairwise encoding), verifies the labeling, and reports the valid
-interval `[lower_bound, upper_bound]`:
+`benchmark/cbmp_search.py` computes the minimum bound `B` (binary search, or
+incremental for the pairwise encoding), verifies the labeling, and reports the
+valid interval `[lower_bound, upper_bound]`:
 
 ```powershell
-.venv\Scripts\python.exe cbmp_search.py dataset/counterx/jgl009.mtx.gz --encoding pairwise
-.venv\Scripts\python.exe cbmp_search.py dataset/counterx/jgl009.mtx.gz --encoding order
-.venv\Scripts\python.exe cbmp_search.py dataset/counterx/jgl009.mtx.gz --incremental
-.venv\Scripts\python.exe cbmp_search.py dataset/bcsstruc1/bcsstk01.mtx.gz --encoding pairwise `
+.venv\Scripts\python.exe -m benchmark.cbmp_search dataset/counterx/jgl009.mtx.gz --encoding pairwise
+.venv\Scripts\python.exe -m benchmark.cbmp_search dataset/counterx/jgl009.mtx.gz --encoding order
+.venv\Scripts\python.exe -m benchmark.cbmp_search dataset/counterx/jgl009.mtx.gz --incremental
+.venv\Scripts\python.exe -m benchmark.cbmp_search dataset/bcsstruc1/bcsstk01.mtx.gz --encoding pairwise `
     --time-limit 60 --total-time-limit 600
 ```
 
@@ -107,6 +107,7 @@ labeling found and a verification flag:
 ```python
 from benchmark.benchmark_gurobi import benchmap_gurobi_mip
 from benchmark.benchmark_cplex import benchmap_cplex_mip, benchmap_cplex_cp
+from benchmark.benchmark_highs import benchmap_highs
 from benchmark.benchmark_ortools import benchmap_cpsat
 from benchmark.benchmark_sat import benchmap_sat
 
@@ -117,6 +118,7 @@ print(result.status, result.bandwidth, result.verified)
 - `gurobi_mip`: Gurobi MIP, compact assignment formulation with integer
   positions and wrap/arc binaries.
 - `cplex_mip`: CPLEX MIP, same compact formulation.
+- `highs_mip`: HiGHS MIP, same compact formulation.
 - `cplex_cp`: CPLEX CP Optimizer, `all_diff` plus the cyclic distance
   disjunction.
 - `cpsat`: OR-Tools CP-SAT, positions with `AddAllDifferent` and modulo/min
@@ -126,6 +128,13 @@ print(result.status, result.bandwidth, result.verified)
 
 Statuses are normalised to `OPTIMAL`, `FEASIBLE`, `TIMEOUT`, `INFEASIBLE`,
 `UNKNOWN` and `ERROR`; every returned labeling is checked independently.
+
+To run the full benchmark suite (300 s limit per instance, configured in
+`benchmark/config.py`):
+
+```powershell
+python run_benchmarks.py --solver all
+```
 
 ## Tests
 
@@ -139,16 +148,15 @@ graphs, check that they agree with each other, and verify symmetry breaking.
 ## Layout
 
 ```
-cbmp_cnf.py            SAT encodings (pairwise, order) + model decoding
-cbmp_search.py         SAT bound search and incremental procedure
+benchmark/             SAT encodings (cbmp_cnf.py), search (cbmp_search.py),
+                       parser (mtx_parser.py), exact baselines, config, runner
+classes/               Graph structure (graph.py), result dataclass, verifier
+run_benchmarks.py      CLI entry point for running benchmark suites
+run_all_sequential.sh  Shell helper to run all 7 benchmark suites sequentially
 generate_figures.py    Publication figures generator using cnsplots
-mtx_parser.py          MatrixMarket / Harwell-Boeing parser -> graph
-classes/graph.py       Graph structure, dataset loading and filters
-classes/benchmarkresult.py
-benchmark/             exact solver baselines and runner
 dataset/               Harwell-Boeing matrices
 matrix_shapes.csv      matrix header information
 result_csv/            Benchmark CSV result files (8 solvers/encodings)
-tests/                 encoding tests
+tests/                 encoding, search, and baseline tests
 report/                Elsevier cas-sc manuscript and figures
 ```

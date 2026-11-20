@@ -6,9 +6,10 @@ cns.lineplot, cns.barplot, cns.scatterplot, cns.savefig) from the CSV files in
 breaking (rotation + reflection) is used.
 
 Usage:  python generate_figures.py
-Output: report/figures/fig{1..5}_*.png
+Output: report/figures/fig{1..7}_*.png
 """
 
+import json
 import os
 
 import matplotlib
@@ -18,6 +19,8 @@ import matplotlib.ticker  # noqa: E402,F401
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 import cnsplots as cns  # noqa: E402
+
+from classes.graph import load_graphs  # noqa: E402
 
 cns.setup_matplotlib()
 
@@ -121,7 +124,7 @@ def fig1_cactus(dfs: dict) -> None:
 
 def fig2_symmetry(dfs: dict) -> None:
     keys = ["sat_order", "sat_pairwise", "sat_incremental", "cpsat", "cplex_cp",
-            "gurobi_mip", "cplex_mip"]
+            "gurobi_mip", "cplex_mip", "highs_mip"]
     setting_name = {(False, False): "None", (True, False): "Rotation",
                     (True, True): "Rotation + Reflection"}
     rows = []
@@ -245,7 +248,7 @@ def fig4_scatter(dfs: dict) -> None:
     ax.set_xlabel("SAT (Order) total time (s)")
     ax.set_ylabel("OR-Tools CP-SAT total time (s)")
     ax.text(0.07, 40, "above diagonal:\nSAT (Order) faster", fontsize=7, color="dimgray")
-    ax.text(0.07, 0.5, "below diagonal:\nCP-SAT faster", fontsize=7, color="dimgray")
+    ax.text(18, 0.22, "below diagonal:\nCP-SAT faster", fontsize=7, color="dimgray")
     ax.grid(True, which="major", ls=":", alpha=0.4)
     cns.take_legend_out(title="Outcome", ax=ax)
     save(fig, "fig4_scatter_sat_vs_cpsat.png")
@@ -276,6 +279,184 @@ def fig5_scaling(dfs: dict) -> None:
     save(fig, "fig5_scaling.png")
 
 
+def fig6_primal_dual(dfs: dict) -> None:
+    graphs = load_graphs(
+        root=os.path.join(BASE_DIR, "dataset"),
+        skipped=[],
+        max_clauses=50_000_000,
+        max_edges=None,
+        max_density=0.8,
+        sort_by_edges=True,
+    )
+    vertex_counts = {g.name: g.get_vertex_count() for g in graphs}
+    all_names = sorted(vertex_counts.keys())
+
+    # Best UB and best LB found across all 8 solvers under full symmetry breaking
+    best_ub, best_lb = {}, {}
+    for g in all_names:
+        ubs, lbs = [], []
+        for key in SOLVERS:
+            if key not in dfs:
+                continue
+            sub = full_sym(dfs[key])
+            hit = sub[sub["graph_name"] == g]
+            if not hit.empty:
+                r = hit.iloc[0]
+                if pd.notna(r["bandwidth"]):
+                    ubs.append(int(r["bandwidth"]))
+                if pd.notna(r["lower_bound"]):
+                    lbs.append(int(r["lower_bound"]))
+        best_ub[g] = min(ubs)
+        best_lb[g] = max(lbs)
+
+    rows = []
+    for key, label in SOLVERS.items():
+        if key not in dfs:
+            continue
+        sub = full_sym(dfs[key])
+        opt_cnt = int((sub["status"] == "OPTIMAL").sum())
+        ub_gaps, lb_gaps = [], []
+        for _, r in sub.iterrows():
+            g = r["graph_name"]
+            b_val = float(r["bandwidth"]) if pd.notna(r["bandwidth"]) else float(vertex_counts[g] // 2)
+            ub_gaps.append((b_val - best_ub[g]) / best_ub[g] * 100.0)
+            lb_val = float(r["lower_bound"])
+            lb_gaps.append((best_lb[g] - lb_val) / best_lb[g] * 100.0)
+        rows.append({
+            "Solver": label,
+            "UBGap": float(np.mean(ub_gaps)),
+            "LBGap": float(np.mean(lb_gaps)),
+            "OPT": opt_cnt,
+        })
+    data = pd.DataFrame(rows)
+    hue_order = list(data["Solver"])
+
+    fig = cns.figure(7.2, 4.1, unit="in")
+    ax = fig.add_subplot(111)
+
+    # Dashed Pareto frontier connecting the 3 non-dominated solvers
+    frontier_names = ["CPLEX CP", "OR-Tools CP-SAT", "SAT (Order)"]
+    f_pts = data.set_index("Solver").loc[frontier_names]
+    ax.plot(
+        f_pts["UBGap"], f_pts["LBGap"],
+        color="#555555", ls="--", lw=1.0, alpha=0.65, zorder=1,
+        label="Pareto frontier",
+    )
+
+    cns.scatterplot(
+        data=data, x="UBGap", y="LBGap",
+        hue="Solver", style="Solver",
+        hue_order=hue_order, style_order=hue_order,
+        palette={s: COLORS[s] for s in hue_order},
+        markers={s: MARKERS[s] for s in hue_order},
+        s=95, legend=False, zorder=3, ax=ax,
+    )
+
+    # Custom non-overlapping offsets (in points) for each solver label
+    offsets = {
+        "CPLEX CP": (10, 12, "left"),
+        "OR-Tools CP-SAT": (-11, -8, "right"),
+        "SAT (Order)": (10, -2, "left"),
+        "SAT (Pairwise)": (10, -4, "left"),
+        "SAT (Incremental)": (-11, 10, "right"),
+        "Gurobi MIP": (-8, -18, "center"),
+        "CPLEX MIP": (6, -18, "center"),
+        "HiGHS MIP": (-12, 16, "center"),
+    }
+    for _, r in data.iterrows():
+        s = r["Solver"]
+        dx, dy, ha = offsets.get(s, (8, 4, "left"))
+        ax.annotate(
+            f"{s}\n({int(r['OPT'])} OPT)",
+            xy=(r["UBGap"], r["LBGap"]),
+            xytext=(dx, dy),
+            textcoords="offset points",
+            ha=ha, va="center", fontsize=7.5, color="#222222",
+        )
+
+    ax.set_xscale("log")
+    ax.set_xlim(0.3, 600)
+    ax.set_ylim(0, 26.5)
+    ticks = [0.5, 1, 2, 5, 10, 20, 50, 100, 200, 400]
+    ax.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(ticks))
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FixedFormatter([f"{t}%" for t in ticks]))
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.0f}%"))
+    ax.annotate(
+        "Ideal (0%, 0%)\n(best UB & best LB)",
+        xy=(0.38, 0.8), xytext=(1.3, 3.6),
+        arrowprops=dict(arrowstyle="->", color="dimgray", lw=0.9),
+        fontsize=7.5, color="dimgray", ha="left", va="center",
+    )
+    ax.text(5.0, 13.0, "Pareto frontier", fontsize=7.2, color="#555555", rotation=-14)
+    ax.set_xlabel(r"Mean relative UB gap to $B_{\mathrm{best}}$ (log scale, TO $= \lfloor n/2\rfloor$, lower is better)")
+    ax.set_ylabel(r"Mean relative LB gap to $\mathrm{LB}_{\mathrm{best}}$ (lower is better)")
+    ax.grid(True, which="major", ls=":", alpha=0.5)
+    save(fig, "fig6_primal_dual.png")
+
+
+def fig7_sat_build_solve(dfs: dict) -> None:
+    sat_keys = ["sat_order", "sat_pairwise", "sat_incremental"]
+    labels = [SOLVERS[k] for k in sat_keys]
+
+    opt_build, opt_solve, opt_share, opt_calls = [], [], [], []
+    all_build, all_max_build, all_calls = [], [], []
+    for k in sat_keys:
+        sub = full_sym(dfs[k]).copy()
+        sub["calls"] = sub["extra"].apply(lambda x: json.loads(x).get("solve_calls", 0) if pd.notna(x) else 0)
+        opt = sub[sub["status"] == "OPTIMAL"]
+        opt_build.append(float(opt["build_time"].mean()))
+        opt_solve.append(float(opt["solve_time"].mean()))
+        opt_share.append(float((opt["build_time"] / opt["total_time"]).mean() * 100.0))
+        opt_calls.append(float(opt["calls"].mean()))
+        all_build.append(float(sub["build_time"].mean()))
+        all_max_build.append(float(sub["build_time"].max()))
+        all_calls.append(float(sub["calls"].mean()))
+
+    fig = cns.figure(8.0, 3.6, unit="in")
+    x = np.arange(len(labels))
+    width = 0.52
+
+    # Panel (a): Stacked build vs solve time on certified OPT instances
+    ax1 = fig.add_subplot(121)
+    ax1.bar(x, opt_build, width, label="CNF build time", color="#3182bd", edgecolor="black", linewidth=0.5)
+    ax1.bar(x, opt_solve, width, bottom=opt_build, label="CaDiCaL solve time", color="#bdd7e7", edgecolor="black", linewidth=0.5)
+    for idx in range(len(labels)):
+        tot = opt_build[idx] + opt_solve[idx]
+        ax1.text(
+            x[idx], tot + 1.8,
+            f"{tot:.1f} s\n(build {opt_share[idx]:.1f}%)",
+            ha="center", va="bottom", fontsize=7.5,
+        )
+    ax1.set_xticks(x)
+    ax1.set_xticklabels(labels, rotation=12, ha="right")
+    ax1.set_ylabel("Mean time per certified OPT instance (s)")
+    ax1.set_ylim(0, max(b + s for b, s in zip(opt_build, opt_solve)) * 1.24)
+    ax1.set_title("(a) Certified OPT time breakdown", fontsize=9.5, pad=6)
+    ax1.grid(True, axis="y", ls=":", alpha=0.5)
+    ax1.legend(loc="upper left", frameon=False, fontsize=8)
+
+    # Panel (b): Mean CNF build time across all 59 instances + mean SAT calls
+    ax2 = fig.add_subplot(122)
+    bar_colors = [COLORS[lbl] for lbl in labels]
+    ax2.bar(x, all_build, width, color=bar_colors, edgecolor="black", linewidth=0.5, alpha=0.9)
+    for idx in range(len(labels)):
+        ax2.text(
+            x[idx], all_build[idx] + 0.4,
+            f"{all_build[idx]:.2f} s\n(max {all_max_build[idx]:.1f} s)\n{all_calls[idx]:.1f} calls",
+            ha="center", va="bottom", fontsize=7.2,
+        )
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(labels, rotation=12, ha="right")
+    ax2.set_ylabel("Mean CNF build time over all 59 instances (s)")
+    ax2.set_ylim(0, max(all_build) * 1.38)
+    ax2.set_title("(b) Overall CNF build overhead & SAT calls", fontsize=9.5, pad=6)
+    ax2.grid(True, axis="y", ls=":", alpha=0.5)
+
+    fig.tight_layout(w_pad=2.2)
+    save(fig, "fig7_sat_build_solve.png")
+
+
 def main() -> None:
     dfs = load_results()
     print(f"Loaded {len(dfs)} solver result files from {RESULTS_DIR}")
@@ -284,6 +465,8 @@ def main() -> None:
     fig3_bandwidth(dfs)
     fig4_scatter(dfs)
     fig5_scaling(dfs)
+    fig6_primal_dual(dfs)
+    fig7_sat_build_solve(dfs)
     print(f"All figures written to {OUTPUT_DIR}")
 
 

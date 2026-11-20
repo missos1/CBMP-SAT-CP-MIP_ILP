@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-PY=""
+PY="${PY:-python3}"
 
 echo "=== STARTING CBMP BENCHMARK SUITE ==="
 date
